@@ -1,0 +1,36 @@
+name: randomness-tests
+
+# Runs all four suites, including Dieharder (which has no Windows build).
+# Manual trigger only: the full profile takes a while.
+on:
+  workflow_dispatch:
+    inputs:
+      profile:
+        description: quick (3.2e7 bits/dataset) or full (1e8 bits/dataset)
+        default: quick
+        type: choice
+        options: [quick, full]
+
+jobs:
+  test-suites:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install system packages
+        run: sudo apt-get update && sudo apt-get install -y dieharder unzip
+      - name: Install Python packages
+        run: pip install -r requirements.txt
+      - name: Unit tests
+        run: python -m pytest -q tests
+      - name: Build NIST STS and TestU01
+        run: bash tools/setup_tools.sh
+      - name: Run pipeline
+        run: python -m hqrng.pipeline --profile ${{ inputs.profile }} --out results/ci --data-dir /tmp/qrng-data --workers 4 --parallel 2
+      - uses: actions/upload-artifact@v4
+        with:
+          name: randomness-results-${{ inputs.profile }}
+          path: results/ci

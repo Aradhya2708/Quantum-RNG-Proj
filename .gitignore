@@ -1,0 +1,10 @@
+# generated bitstreams (large) and locally built tools
+data/
+third_party/
+*.bin
+*.bin.seed
+# python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/

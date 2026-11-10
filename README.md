@@ -5,6 +5,18 @@
 
 ---
 
+> **New: randomness test-suite harness** (`hqrng/`). Generates large, shot-ordered
+> bitstreams from Models A–D, estimates min-entropy (SP 800-90B style), applies a
+> Toeplitz extractor, and runs **NIST SP 800-22** (official STS, full 100-sequence
+> protocol), **TestU01** and **Dieharder**, with one command:
+> `python -m hqrng.pipeline --profile full`.
+> See [docs/TEST_SUITES.md](docs/TEST_SUITES.md) for usage and
+> [docs/FINDINGS.md](docs/FINDINGS.md) for review notes that affect some results below
+> (in particular: Aer's output is Mersenne-Twister pseudo-randomness, and Models A–D
+> prepare the same state). Latest results: [results/full/summary.md](results/full/summary.md).
+
+---
+
 ## 📌 Table of Contents
 
 - [Overview](#-overview)
