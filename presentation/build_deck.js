@@ -236,19 +236,20 @@ pres.addSection({ title: "A. Problem and test source" });
     color: PURPLE, align: "center", valign: "middle", margin: 0, charSpacing: 1 });
   s.addText("Testing Quantum Random Number Generators", { x: MX, y: 2.05, w: 6.6, h: 1.9, fontFace: FONT,
     fontSize: 40, bold: true, color: INK, margin: 0, valign: "top", isTextBox: true });
-  s.addText("Entropy estimation, Toeplitz extraction and four statistical test suites", { x: MX, y: 4.05, w: 6.4,
+  s.addText("Entropy estimation, Toeplitz extraction and five statistical test suites", { x: MX, y: 4.05, w: 6.4,
     h: 0.8, fontFace: FONT, fontSize: 17, color: INK, margin: 0, isTextBox: true });
   s.addText([
     { text: "NIST SP 800-22", options: { bold: true, color: PURPLE } }, { text: "  ·  ", options: { color: GRAY } },
-    { text: "TestU01", options: { bold: true, color: PURPLE } }, { text: "  ·  ", options: { color: GRAY } },
-    { text: "Dieharder", options: { bold: true, color: PURPLE } }, { text: "  ·  ", options: { color: GRAY } },
-    { text: "SP 800-90B", options: { bold: true, color: PURPLE } },
-  ], { x: MX, y: 5.0, w: 6.6, h: 0.4, fontFace: FONT, fontSize: 13, margin: 0, isTextBox: true });
+    { text: "Rabbit", options: { bold: true, color: PURPLE } }, { text: "  ·  ", options: { color: GRAY } },
+    { text: "Alphabit", options: { bold: true, color: PURPLE } }, { text: "  ·  ", options: { color: GRAY } },
+    { text: "LinearComp", options: { bold: true, color: PURPLE } }, { text: "  ·  ", options: { color: GRAY } },
+    { text: "Dieharder", options: { bold: true, color: PURPLE } },
+  ], { x: MX, y: 5.0, w: 7.2, h: 0.4, fontFace: FONT, fontSize: 13, margin: 0, isTextBox: true });
   s.addText("Aradhya Mahajan (B23CS1088)  ·  Amee Ghai (B23PH1003)", { x: MX, y: 5.95, w: 6.8, h: 0.4, fontFace: FONT, fontSize: 13, bold: true,
     color: INK, margin: 0, isTextBox: true });
   s.addText("IIT Jodhpur  ·  November 2026", { x: MX, y: 6.4, w: 6, h: 0.35, fontFace: FONT, fontSize: 11,
     color: GRAY, margin: 0, isTextBox: true });
-  s.addNotes("Welcome. This lecture is about one question: how do you know that a random number generator, and in particular a quantum one, is actually producing good random bits? We will build a complete testing pipeline: generate bits from a quantum circuit, estimate how much real randomness they contain, clean them with a Toeplitz extractor, and run them through four standard test suites. Every chart in this talk comes from our own code and data.");
+  s.addNotes("Welcome. This lecture is about one question: how do you know that a random number generator, and in particular a quantum one, is actually producing good random bits? We will build a complete testing pipeline: generate bits from a quantum circuit, estimate how much real randomness they contain, clean them with a Toeplitz extractor, and run them through five standard test suites. Every chart in this talk comes from our own code and data.");
 }
 
 // =================================================================================
@@ -298,7 +299,7 @@ pres.addSection({ title: "A. Problem and test source" });
   });
   card(s, { x: MX, y: 4.35, w: 3.9, h: 1.6, head: "DATASETS", big: "6", body: "a control, four simulator set-ups, one extracted" });
   card(s, { x: MX + 4.11, y: 4.35, w: 3.9, h: 1.6, head: "PER DATASET", big: "10⁸ bits", body: "the size NIST's protocol asks for" });
-  card(s, { x: MX + 8.22, y: 4.35, w: 3.91, h: 1.6, head: "TOOLS", big: "4", body: "NIST SP 800-22, TestU01, Dieharder, SP 800-90B" });
+  card(s, { x: MX + 8.22, y: 4.35, w: 3.91, h: 1.6, head: "TEST SUITES", big: "5", body: "NIST SP 800-22, Rabbit, Alphabit, LinearComp, Dieharder" });
 }
 
 // =================================================================================
@@ -698,7 +699,7 @@ pres.addSection({ title: "D. Statistical test suites" });
   ].join("\n"), { x: MX, y: 3.95, w: 5.9, h: 2.45 }, 10.5);
   img(s, "fig23_random_walk.png", { x: 6.75, y: 1.5, w: 5.98, h: 3.55 }, { alt: "Random walks of control, noisy and extracted bits" });
   bullets(s, [
-    "Rabbit and Alphabit are built for **finite files**",
+    "**Three of our five suites** come from TestU01: Rabbit, Alphabit, LinearComp",
     "Bias shows up as a **steady drift** of the random walk",
   ], { x: 6.75, y: 5.25, w: 5.98, h: 1.3 }, { fontSize: 13.5, space: 8 });
 }
@@ -865,16 +866,16 @@ pres.addSection({ title: "E. Engineering and conclusions" });
   const dhLin = DH && DH.datasets ? ((DH.datasets.find((d) => d.dataset === "aer_D_ideal") || {}).failed > 0 ? "yes" : "no") : "?";
   const dh5k = DH && DH.datasets ? ((DH.datasets.find((d) => d.dataset === "aer_D_5k") || {}).failed > 0 ? "yes" : "no") : "?";
   const M = [
-    ["Bias (48.7 % ones)", "yes", "yes", "yes", "no", dhBias, "yes*"],
-    ["Linear generator, long runs (MT19937)", "no", "no", "no", "yes", dhLin, "no"],
-    ["Same generator, re-seeded every 5,000 shots", "no", "no", "no", "no", dh5k, "no"],
+    ["Bias (48.7 % ones)", "yes", "yes", "yes", "yes", "no", dhBias, "yes*"],
+    ["Linear generator, long runs (MT19937)", "no", "no", "no", "no", "yes", dhLin, "no"],
+    ["Same generator, re-seeded every 5,000 shots", "no", "no", "no", "no", "no", dh5k, "no"],
   ];
-  const heads = ["Flaw", "Entropy estimate", "NIST SP 800-22", "Rabbit / Alphabit", "LinearComp", "Dieharder", "Visual checks"];
-  const rows = [heads.map((h, i) => hcell(h, { align: i ? "center" : "left", fontSize: 10.5 }))];
+  const heads = ["Flaw", "Entropy estimate", "NIST SP 800-22", "Rabbit", "Alphabit", "LinearComp", "Dieharder", "Visual checks"];
+  const rows = [heads.map((h, i) => hcell(h, { align: i ? "center" : "left", fontSize: 10 }))];
   M.forEach((r) => rows.push(r.map((v, i) => i === 0 ? cell(v, { bold: true, fontSize: 11 }) :
-    cell(v === "yes" ? "✓ caught" : v === "yes*" ? "✓ caught*" : v === "no" ? "– missed" : "?", { align: "center", fontSize: 11, bold: v.startsWith("yes"),
+    cell(v === "yes" ? "✓ caught" : v === "yes*" ? "✓ caught*" : v === "no" ? "– missed" : "?", { align: "center", fontSize: 10.5, bold: v.startsWith("yes"),
       color: v.startsWith("yes") ? TEAL : v === "no" ? ORANGE : GRAY, fill: v.startsWith("yes") ? PASS_BG : v === "no" ? FAIL_BG : NA_BG }))));
-  s.addTable(rows, { x: MX, y: 1.5, w: CW, colW: [3.43, 1.45, 1.45, 1.45, 1.45, 1.45, 1.45], border: TB, rowH: 0.62 });
+  s.addTable(rows, { x: MX, y: 1.5, w: CW, colW: [3.13, 1.29, 1.29, 1.28, 1.28, 1.29, 1.28, 1.29], border: TB, rowH: 0.62 });
   caption(s, "* bias map and byte-pair heat map catch it; autocorrelation does not.", { x: MX, y: 4.05, w: CW, h: 0.3 });
   const L = [
     ["1", "Run several independent suites", "Only LinearComp saw the Mersenne Twister; NIST and Rabbit passed it."],
