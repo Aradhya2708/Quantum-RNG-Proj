@@ -16,7 +16,7 @@ raw bits ──► SP 800-90B entropy estimate ──► Toeplitz extractor ─�
 |---|---|---|---|---|---|
 | 1 | **NIST SP 800-22** (official STS 2.1.2) | 15 tests, 188 sub-tests, judged over many sequences | bias, runs, periodicity, template patterns, low linear complexity *within 500–5000-bit blocks* | 100 × 10⁶ bits (the standard protocol) | Windows, Linux, macOS |
 | 2 | **TestU01** (Rabbit, Alphabit, LinearComp; SmallCrush optional) | L'Ecuyer & Simard's library; Rabbit/Alphabit were designed for finite hardware-RNG files | everything above, plus long-range linear structure (LinearComp on 400k-bit sequences, which is what exposes a Mersenne Twister) | Rabbit/Alphabit: any size; LinearComp: 2.6×10⁷ bits; SmallCrush: 7.3×10⁹ bits | Windows (MinGW), Linux, macOS |
-| 3 | **Dieharder** | Marsaglia's Diehard tests + extras, ~114 results | distributional tests on 32-bit words (birthday spacings, parking lot, etc.) | `-a` wants GBs; smaller files get **rewound**, which causes false failures | Linux / WSL / CI only |
+| 3 | **Dieharder** | Marsaglia's Diehard tests + extras, ~114 results | distributional tests on 32-bit words (birthday spacings, parking lot, etc.) | `-a` wants GBs; smaller files get **rewound**, which causes false failures, so we size each test to the file | Linux / WSL / CI; native Windows build |
 | 4 | **Toeplitz extractor** | not a test — the post-processing step real QRNGs need | turns biased raw bits with min-entropy *h* into ε-uniform output | — | everywhere |
 | 5 | **SP 800-90B entropy estimate** (suggested fifth) | min-entropy of the *raw* source | sizes the extractor; a source fails if *h* is far below what is claimed | ≥ 10⁶ samples | everywhere (subset here; full NIST tool on Linux) |
 
@@ -44,8 +44,9 @@ bash tools/setup_tools.sh
 ```
 
 Windows needs Git-Bash or MSYS2 with MinGW gcc (no autotools needed; TestU01 is
-built by `tools/build_testu01_mingw.sh`). Dieharder has no Windows build: use
-WSL (`sudo apt install dieharder`) or the GitHub Actions workflow
+built by `tools/build_testu01_mingw.sh`). Dieharder is built natively on Windows
+by `tools/build_dieharder_mingw.sh` (called from `setup_tools.sh`); on Linux/WSL use
+`sudo apt install dieharder`, or run the GitHub Actions workflow
 (`.github/workflows/randomness.yml`, run it from the Actions tab).
 
 ## Everything at once
@@ -73,7 +74,7 @@ python -m hqrng.extractor data/ibm.bin data/ibm_toeplitz.bin --h-min 0.95 --bloc
 # 4. Test
 python -m hqrng.suites.nist_sts  data/ibm_toeplitz.bin --streams 100 --keep results/nist_ibm
 python -m hqrng.suites.testu01   data/ibm_toeplitz.bin --batteries rabbit,alphabit,lincomp
-python -m hqrng.suites.dieharder data/ibm_toeplitz.bin          # Linux/WSL
+python -m hqrng.suites.dieharder data/ibm_toeplitz.bin --reference data/urandom.bin   # sized, no rewinds
 
 # Diagnostics
 python -m hqrng.lincomp data/ibm.bin          # per-qubit linear complexity

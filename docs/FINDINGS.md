@@ -121,18 +121,21 @@ runs the official C suite on the full protocol.
 100 × 10⁶ bits, Model D with 32 qubits. Full table, with every p-value, in
 [results/full/summary.md](../results/full/summary.md).
 
-| Dataset | Ones % | NIST SP 800-22 | TestU01 Rabbit | TestU01 Alphabit | TestU01 LinearComp |
-|---|---:|---|---|---|---|
-| `urandom` (control: OS CSPRNG) | 50.003 | 188/188 ✓ | 38/38 ✓ | 17/17 ✓ | 4/4 ✓ |
-| `aer_D_5k` (the notebooks' setup) | 49.994 | 187/188 ✓ | 38/38 ✓ | 17/17 ✓ | 4/4 ✓ |
-| `aer_D_ideal` (100k shots/circuit) | 50.002 | 188/188 ✓ | 38/38 ✓ | 17/17 ✓ | **2/4 ✗** |
-| `aer_D_sym2pct` (notebook noise) | 50.005 | 187/188 ✓ | 38/38 ✓ | 17/17 ✓ | 4/4 ✓ |
-| `aer_D_ibmlike` (asymmetric readout) | 48.688 | **70/162 ✗** | **14/38 ✗** | **2/17 ✗** | 4/4 ✓ |
-| `aer_D_ibmlike_toeplitz` | 50.002 | 187/188 ✓ | 38/38 ✓ | 17/17 ✓ | 4/4 ✓ |
+| Dataset | Ones % | NIST SP 800-22 | TestU01 Rabbit | TestU01 Alphabit | TestU01 LinearComp | Dieharder (sized) |
+|---|---:|---|---|---|---|---|
+| `urandom` (control: OS CSPRNG) | 50.003 | 188/188 ✓ | 38/38 ✓ | 17/17 ✓ | 4/4 ✓ | 48 / 1 weak / 0 ✓ |
+| `aer_D_5k` (the notebooks' setup) | 49.994 | 187/188 ✓ | 38/38 ✓ | 17/17 ✓ | 4/4 ✓ | 49 / 0 / 0 ✓ |
+| `aer_D_ideal` (100k shots/circuit) | 50.002 | 188/188 ✓ | 38/38 ✓ | 17/17 ✓ | **2/4 ✗** | 46 / 3 weak / 0 ✓ |
+| `aer_D_sym2pct` (notebook noise) | 50.005 | 187/188 ✓ | 38/38 ✓ | 17/17 ✓ | 4/4 ✓ | 47 / 2 weak / 0 ✓ |
+| `aer_D_ibmlike` (asymmetric readout) | 48.688 | **70/162 ✗** | **14/38 ✗** | **2/17 ✗** | 4/4 ✓ | **26 / 1 / 22 failed ✗** |
+| `aer_D_ibmlike_toeplitz` | 50.002 | 187/188 ✓ | 38/38 ✓ | 17/17 ✓ | 4/4 ✓ | 48 / 1 weak / 0 ✓ |
 
 187/188 is within chance: an ideal source fails up to 3 of the 148
-NonOverlappingTemplate sub-tests at the 99% level. Dieharder was not run here
-(no Windows build); use WSL or the GitHub Actions workflow.
+NonOverlappingTemplate sub-tests at the 99% level. Dieharder (passed / weak /
+failed) ran natively on Windows (`tools/build_dieharder_mingw.sh`), each test sized
+to the 10⁸-bit file so no data is re-read: 19 tests, 49 results per dataset;
+8 tests need more data and were skipped (`results/dieharder/`). A few WEAK
+results are expected by chance.
 
 What this shows:
 

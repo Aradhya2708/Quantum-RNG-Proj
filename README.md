@@ -54,7 +54,7 @@ raw bits ──► entropy estimate ──► Toeplitz extractor ──► NIST 
 |---|---|---|
 | Python 3.10+ | ✓ | ✓ |
 | `gcc`, `curl`, `unzip` (to build the test tools) | `sudo apt install build-essential curl unzip` (macOS: Xcode command-line tools) | Git Bash plus MinGW `gcc`, e.g. from [MSYS2](https://www.msys2.org/) or [w64devkit](https://github.com/skeeto/w64devkit) |
-| Dieharder (optional) | `sudo apt install dieharder` | No Windows build: use [WSL](#dieharder-on-windows) or [GitHub Actions](#dieharder-on-windows) |
+| Dieharder | `sudo apt install dieharder` | Built natively by `tools/setup_tools.sh` (see [Dieharder on Windows](#dieharder-on-windows)) |
 
 ### Step 1 — Install (once)
 
@@ -121,7 +121,7 @@ python -m hqrng.entropy   data/mybits.bin --width 32                      # 1. p
 python -m hqrng.extractor data/mybits.bin data/mybits_clean.bin --h-min 0.95  # 2. Toeplitz; use the h_min from step 1
 python -m hqrng.suites.nist_sts  data/mybits_clean.bin                    # 3. NIST SP 800-22
 python -m hqrng.suites.testu01   data/mybits_clean.bin                    # 4. TestU01
-python -m hqrng.suites.dieharder data/mybits_clean.bin                    # 5. Dieharder (Linux/WSL)
+python -m hqrng.suites.dieharder data/mybits_clean.bin --reference data/urandom.bin  # 5. Dieharder, sized to the file
 ```
 
 How much data each test needs:
@@ -131,11 +131,13 @@ How much data each test needs:
 | NIST SP 800-22 | 100 × 1 million bits (12.5 MB) for the standard protocol | same |
 | TestU01 Rabbit / Alphabit | ~1.6 million / ~0.6 million bits | 100 million bits |
 | TestU01 LinearComp | ~26 million bits (3.2 MB) | same |
-| Dieharder | works on any size, but small files are re-read from the start, which causes false failures | gigabytes |
+| Dieharder | 10⁸ bits runs 19 of its tests, each sized so the file is never re-read | gigabytes for the full `-a` battery |
 
 ### Dieharder on Windows
 
-Dieharder only runs on Linux. Two options:
+Dieharder is a Linux tool, but `tools/setup_tools.sh` builds a native `dieharder.exe` on Windows
+(`tools/build_dieharder_mingw.sh`: Dieharder 3.31.1 + GSL, statically linked, MinGW `gcc` and `zstd` needed).
+Alternatives:
 
 - **WSL:** run `wsl --install` in PowerShell, open Ubuntu, then
   `sudo apt install dieharder build-essential curl unzip python3-venv` and follow Steps 1–2 inside it.
@@ -161,7 +163,7 @@ Dieharder only runs on Linux. Two options:
 | `gcc: command not found` during setup | Install `gcc` (see [What you need](#what-you-need)) and run setup in a shell where `gcc --version` works |
 | NIST or TestU01 shows `unavailable` | The tools aren't built yet: run `bash tools/setup_tools.sh`, or set `HQRNG_TOOLS` to where you built them |
 | NIST or TestU01 reports `insufficient-data` | The file is too small; see the data table above |
-| Dieharder shows `unavailable` | It isn't installed; use Linux/WSL or GitHub Actions |
+| Dieharder shows `unavailable` | Run `bash tools/setup_tools.sh` (Windows) or `sudo apt install dieharder` (Linux/WSL) |
 
 More detail, including every option: [docs/TEST_SUITES.md](docs/TEST_SUITES.md).
 

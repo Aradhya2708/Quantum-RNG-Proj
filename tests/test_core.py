@@ -140,3 +140,17 @@ def test_testu01_nb_fits_file():
     assert testu01.choose_nb("rabbit", words) == 1 << 21      # 2^22 needs 3.15M words > 3.125M
     assert testu01.choose_nb("alphabit", words) == 1 << 23
     assert testu01.choose_nb("rabbit", 1000) is None
+
+
+def test_dieharder_parse_rows_and_rewinds():
+    from hqrng.suites.dieharder import parse
+    text = """
+   diehard_birthdays|   0|       100|       1|0.35850958|  PASSED
+# The file file_input_raw was rewound 2 times
+          sts_serial|   9|    100000|       1|0.00215623|   WEAK
+      diehard_craps|   0|    200000|       1|0.00000000|  FAILED
+"""
+    tests, rewinds = parse(text)
+    assert rewinds == 2
+    assert [t["verdict"] for t in tests] == ["passed", "weak", "failed"]
+    assert tests[1]["ntup"] == 9 and tests[0]["psamples"] == 1

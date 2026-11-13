@@ -3,7 +3,8 @@
 #
 #   NIST STS 2.1.2  -> $HQRNG_TOOLS/sts/assess
 #   TestU01 1.2.3   -> $HQRNG_TOOLS/bin/testu01_file   (our file harness)
-#   Dieharder       -> from the OS package manager (Linux/WSL only)
+#   Dieharder       -> OS package manager on Linux/WSL; on Windows built natively
+#                      by tools/build_dieharder_mingw.sh -> $HQRNG_TOOLS/bin/dieharder.exe
 #
 # Works on Linux, macOS, and Windows Git-Bash/MSYS2 with MinGW gcc.
 # Windows note: keep $HQRNG_TOOLS on a short path (e.g. C:/qrng-tools); gcc and
@@ -46,7 +47,9 @@ fi
 # ---- Dieharder ---------------------------------------------------------------
 if command -v dieharder >/dev/null 2>&1; then
   echo "dieharder: $(command -v dieharder)"
+elif [ -n "$EXE" ]; then
+  [ -x "$TOOLS/bin/dieharder.exe" ] || bash "$HERE/build_dieharder_mingw.sh" "$TOOLS"
 else
-  echo "dieharder not found. Linux/WSL: sudo apt-get install -y dieharder (no native Windows build)."
+  echo "dieharder not found. Linux/WSL: sudo apt-get install -y dieharder"
 fi
 echo "Tools ready in $TOOLS. Export HQRNG_TOOLS=$TOOLS if that is not ./third_party."

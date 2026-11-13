@@ -1,0 +1,297 @@
+{
+ "title": "Dieharder results (19 tests, 49 results each)",
+ "mode": "each test run alone, largest p-sample count without rewinding (calibrated on the control)",
+ "tests_run": 19,
+ "tests_skipped": [
+  {
+   "id": 13,
+   "name": "Diehard Squeeze Test",
+   "reason": "needs more data"
+  },
+  {
+   "id": 17,
+   "name": "Marsaglia and Tsang GCD Test",
+   "reason": "needs more data"
+  },
+  {
+   "id": 201,
+   "name": "RGB Generalized Minimum Distance Test",
+   "reason": "degenerate at this size (p = 0 or 1 on the control)"
+  },
+  {
+   "id": 205,
+   "name": "Byte Distribution",
+   "reason": "needs more data"
+  },
+  {
+   "id": 206,
+   "name": "DAB DCT",
+   "reason": "needs more data"
+  },
+  {
+   "id": 207,
+   "name": "DAB Fill Tree Test",
+   "reason": "needs more data"
+  },
+  {
+   "id": 208,
+   "name": "DAB Fill Tree 2 Test",
+   "reason": "needs more data"
+  },
+  {
+   "id": 209,
+   "name": "DAB Monobit 2 Test",
+   "reason": "needs more data"
+  }
+ ],
+ "note": "Control and simulator: no failures; 0\u20133 WEAK each, as expected by chance. Noisy source: 22 failures in bias-sensitive tests. After Toeplitz: 48 passed, 1 weak.",
+ "datasets": [
+  {
+   "dataset": "urandom",
+   "passed": 48,
+   "weak": 1,
+   "failed": 0,
+   "failed_tests": [],
+   "seconds": 6.5
+  },
+  {
+   "dataset": "aer_D_5k",
+   "passed": 49,
+   "weak": 0,
+   "failed": 0,
+   "failed_tests": [],
+   "seconds": 6.4
+  },
+  {
+   "dataset": "aer_D_ideal",
+   "passed": 46,
+   "weak": 3,
+   "failed": 0,
+   "failed_tests": [],
+   "seconds": 6.4
+  },
+  {
+   "dataset": "aer_D_sym2pct",
+   "passed": 47,
+   "weak": 2,
+   "failed": 0,
+   "failed_tests": [],
+   "seconds": 6.8
+  },
+  {
+   "dataset": "aer_D_ibmlike",
+   "passed": 26,
+   "weak": 1,
+   "failed": 22,
+   "failed_tests": [
+    "diehard_bitstream",
+    "diehard_count_1s_byt",
+    "diehard_count_1s_str",
+    "diehard_craps",
+    "rgb_lagged_sum",
+    "sts_monobit",
+    "sts_serial"
+   ],
+   "seconds": 6.4
+  },
+  {
+   "dataset": "aer_D_ibmlike_toeplitz",
+   "passed": 48,
+   "weak": 1,
+   "failed": 0,
+   "failed_tests": [],
+   "seconds": 6.5
+  }
+ ],
+ "plan": [
+  {
+   "id": 0,
+   "name": "Diehard Birthdays Test",
+   "reliability": "Good",
+   "psamples": 1,
+   "note": null
+  },
+  {
+   "id": 1,
+   "name": "Diehard OPERM5 Test",
+   "reliability": "Good",
+   "psamples": 1,
+   "note": null
+  },
+  {
+   "id": 2,
+   "name": "Diehard 32x32 Binary Rank Test",
+   "reliability": "Good",
+   "psamples": 1,
+   "note": null
+  },
+  {
+   "id": 3,
+   "name": "Diehard 6x8 Binary Rank Test",
+   "reliability": "Good",
+   "psamples": 1,
+   "note": null
+  },
+  {
+   "id": 4,
+   "name": "Diehard Bitstream Test",
+   "reliability": "Good",
+   "psamples": 1,
+   "note": null
+  },
+  {
+   "id": 8,
+   "name": "Diehard Count the 1s (stream) Test",
+   "reliability": "Good",
+   "psamples": 1,
+   "note": null
+  },
+  {
+   "id": 9,
+   "name": "Diehard Count the 1s Test (byte)",
+   "reliability": "Good",
+   "psamples": 1,
+   "note": null
+  },
+  {
+   "id": 10,
+   "name": "Diehard Parking Lot Test",
+   "reliability": "Good",
+   "psamples": 1,
+   "note": null
+  },
+  {
+   "id": 11,
+   "name": "Diehard Minimum Distance (2d Circle) Test",
+   "reliability": "Good",
+   "psamples": 1,
+   "note": null
+  },
+  {
+   "id": 12,
+   "name": "Diehard 3d Sphere (Minimum Distance) Test",
+   "reliability": "Good",
+   "psamples": 1,
+   "note": null
+  },
+  {
+   "id": 13,
+   "name": "Diehard Squeeze Test",
+   "reliability": "Good",
+   "psamples": null,
+   "note": "needs more data"
+  },
+  {
+   "id": 15,
+   "name": "Diehard Runs Test",
+   "reliability": "Good",
+   "psamples": 1,
+   "note": null
+  },
+  {
+   "id": 16,
+   "name": "Diehard Craps Test",
+   "reliability": "Good",
+   "psamples": 1,
+   "note": null
+  },
+  {
+   "id": 17,
+   "name": "Marsaglia and Tsang GCD Test",
+   "reliability": "Good",
+   "psamples": null,
+   "note": "needs more data"
+  },
+  {
+   "id": 100,
+   "name": "STS Monobit Test",
+   "reliability": "Good",
+   "psamples": 1,
+   "note": null
+  },
+  {
+   "id": 101,
+   "name": "STS Runs Test",
+   "reliability": "Good",
+   "psamples": 1,
+   "note": null
+  },
+  {
+   "id": 102,
+   "name": "STS Serial Test (Generalized)",
+   "reliability": "Good",
+   "psamples": 1,
+   "note": null
+  },
+  {
+   "id": 200,
+   "name": "RGB Bit Distribution Test",
+   "reliability": "Good",
+   "psamples": 100,
+   "note": null
+  },
+  {
+   "id": 201,
+   "name": "RGB Generalized Minimum Distance Test",
+   "reliability": "Good",
+   "psamples": null,
+   "note": "degenerate at this size (p = 0 or 1 on the control)"
+  },
+  {
+   "id": 202,
+   "name": "RGB Permutations Test",
+   "reliability": "Good",
+   "psamples": 1,
+   "note": null
+  },
+  {
+   "id": 203,
+   "name": "RGB Lagged Sum Test",
+   "reliability": "Good",
+   "psamples": 1,
+   "note": null
+  },
+  {
+   "id": 204,
+   "name": "RGB Kolmogorov-Smirnov Test Test",
+   "reliability": "Good",
+   "psamples": 1,
+   "note": null
+  },
+  {
+   "id": 205,
+   "name": "Byte Distribution",
+   "reliability": "Good",
+   "psamples": null,
+   "note": "needs more data"
+  },
+  {
+   "id": 206,
+   "name": "DAB DCT",
+   "reliability": "Good",
+   "psamples": null,
+   "note": "needs more data"
+  },
+  {
+   "id": 207,
+   "name": "DAB Fill Tree Test",
+   "reliability": "Good",
+   "psamples": null,
+   "note": "needs more data"
+  },
+  {
+   "id": 208,
+   "name": "DAB Fill Tree 2 Test",
+   "reliability": "Good",
+   "psamples": null,
+   "note": "needs more data"
+  },
+  {
+   "id": 209,
+   "name": "DAB Monobit 2 Test",
+   "reliability": "Good",
+   "psamples": null,
+   "note": "needs more data"
+  }
+ ]
+}

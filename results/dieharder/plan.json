@@ -1,0 +1,164 @@
+[
+ {
+  "id": 0,
+  "name": "Diehard Birthdays Test",
+  "reliability": "Good",
+  "psamples": 1
+ },
+ {
+  "id": 1,
+  "name": "Diehard OPERM5 Test",
+  "reliability": "Good",
+  "psamples": 1
+ },
+ {
+  "id": 2,
+  "name": "Diehard 32x32 Binary Rank Test",
+  "reliability": "Good",
+  "psamples": 1
+ },
+ {
+  "id": 3,
+  "name": "Diehard 6x8 Binary Rank Test",
+  "reliability": "Good",
+  "psamples": 1
+ },
+ {
+  "id": 4,
+  "name": "Diehard Bitstream Test",
+  "reliability": "Good",
+  "psamples": 1
+ },
+ {
+  "id": 8,
+  "name": "Diehard Count the 1s (stream) Test",
+  "reliability": "Good",
+  "psamples": 1
+ },
+ {
+  "id": 9,
+  "name": "Diehard Count the 1s Test (byte)",
+  "reliability": "Good",
+  "psamples": 1
+ },
+ {
+  "id": 10,
+  "name": "Diehard Parking Lot Test",
+  "reliability": "Good",
+  "psamples": 1
+ },
+ {
+  "id": 11,
+  "name": "Diehard Minimum Distance (2d Circle) Test",
+  "reliability": "Good",
+  "psamples": 1
+ },
+ {
+  "id": 12,
+  "name": "Diehard 3d Sphere (Minimum Distance) Test",
+  "reliability": "Good",
+  "psamples": 1
+ },
+ {
+  "id": 13,
+  "name": "Diehard Squeeze Test",
+  "reliability": "Good",
+  "psamples": null
+ },
+ {
+  "id": 15,
+  "name": "Diehard Runs Test",
+  "reliability": "Good",
+  "psamples": 1
+ },
+ {
+  "id": 16,
+  "name": "Diehard Craps Test",
+  "reliability": "Good",
+  "psamples": 1
+ },
+ {
+  "id": 17,
+  "name": "Marsaglia and Tsang GCD Test",
+  "reliability": "Good",
+  "psamples": null
+ },
+ {
+  "id": 100,
+  "name": "STS Monobit Test",
+  "reliability": "Good",
+  "psamples": 1
+ },
+ {
+  "id": 101,
+  "name": "STS Runs Test",
+  "reliability": "Good",
+  "psamples": 1
+ },
+ {
+  "id": 102,
+  "name": "STS Serial Test (Generalized)",
+  "reliability": "Good",
+  "psamples": 1
+ },
+ {
+  "id": 200,
+  "name": "RGB Bit Distribution Test",
+  "reliability": "Good",
+  "psamples": 100
+ },
+ {
+  "id": 201,
+  "name": "RGB Generalized Minimum Distance Test",
+  "reliability": "Good",
+  "psamples": 1
+ },
+ {
+  "id": 202,
+  "name": "RGB Permutations Test",
+  "reliability": "Good",
+  "psamples": 1
+ },
+ {
+  "id": 203,
+  "name": "RGB Lagged Sum Test",
+  "reliability": "Good",
+  "psamples": 1
+ },
+ {
+  "id": 204,
+  "name": "RGB Kolmogorov-Smirnov Test Test",
+  "reliability": "Good",
+  "psamples": 1
+ },
+ {
+  "id": 205,
+  "name": "Byte Distribution",
+  "reliability": "Good",
+  "psamples": null
+ },
+ {
+  "id": 206,
+  "name": "DAB DCT",
+  "reliability": "Good",
+  "psamples": null
+ },
+ {
+  "id": 207,
+  "name": "DAB Fill Tree Test",
+  "reliability": "Good",
+  "psamples": null
+ },
+ {
+  "id": 208,
+  "name": "DAB Fill Tree 2 Test",
+  "reliability": "Good",
+  "psamples": null
+ },
+ {
+  "id": 209,
+  "name": "DAB Monobit 2 Test",
+  "reliability": "Good",
+  "psamples": null
+ }
+]

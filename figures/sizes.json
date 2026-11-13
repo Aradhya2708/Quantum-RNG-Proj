@@ -1,0 +1,102 @@
+{
+"fig01_circuits.png": [
+2013,
+1468
+],
+"fig02_variants_uniform.png": [
+2068,
+848
+],
+"fig03_noise_bias.png": [
+1736,
+960
+],
+"fig04_readout_table.png": [
+2367,
+1168
+],
+"fig05_entropy_saturation.png": [
+1707,
+960
+],
+"fig06_correlation_floor.png": [
+2165,
+888
+],
+"fig07_linear_complexity.png": [
+1847,
+991
+],
+"fig08_lfsr_example.png": [
+1567,
+848
+],
+"fig09_entropy_curves.png": [
+1736,
+1080
+],
+"fig10_hmin_datasets.png": [
+2200,
+1025
+],
+"fig11_piling_up.png": [
+1735,
+960
+],
+"fig12_toeplitz_structure.png": [
+1492,
+1029
+],
+"fig13_toeplitz_example.png": [
+2341,
+664
+],
+"fig14_lhl_length.png": [
+1715,
+960
+],
+"fig15_column_bias.png": [
+2046,
+996
+],
+"fig16_column_heatmap.png": [
+1977,
+1022
+],
+"fig17_bytepair.png": [
+2196,
+790
+],
+"fig18_autocorr.png": [
+2106,
+965
+],
+"fig19_pvalue_hist.png": [
+2276,
+1168
+],
+"fig20_proportion.png": [
+2740,
+847
+],
+"fig21_nist_heatmap.png": [
+2157,
+1312
+],
+"fig22_testu01_strip.png": [
+2952,
+966
+],
+"fig23_random_walk.png": [
+1943,
+929
+],
+"fig24_throughput.png": [
+1405,
+898
+],
+"fig25_parking_lot.png": [
+1025,
+1150
+]
+}

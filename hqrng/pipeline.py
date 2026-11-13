@@ -74,7 +74,7 @@ def make_dataset(name, spec, n_bits, data_dir: Path, workers: int, seed: int) ->
     return path
 
 
-def analyse(name, path, suites, n_seq) -> dict:
+def analyse(name, path, suites, n_seq, dh_plan=None) -> dict:
     bits = read_bits(path)
     res = dict(dataset=name, file=str(path), meta=read_meta(path), n_bits=int(len(bits)))
     res["entropy"] = entropy.assess(bits, 32)
@@ -88,7 +88,8 @@ def analyse(name, path, suites, n_seq) -> dict:
         if "testu01" in suites:
             jobs["testu01"] = ex.submit(testu01.run, path)
         if "dieharder" in suites:
-            jobs["dieharder"] = ex.submit(dieharder.run, path)
+            jobs["dieharder"] = (ex.submit(dieharder.run_sized, path, dh_plan) if dh_plan
+                                 else ex.submit(dieharder.run, path))
         for k, fut in jobs.items():
             res[k] = fut.result()
     return res
@@ -123,7 +124,7 @@ def fmt_dh(r):
     if not r or r.get("status") != "ok":
         return (r or {}).get("status", "-")
     s = f"{r['passed']}P/{r['weak']}W/{r['failed']}F"
-    return s + (f" (rewound {r['rewinds']}×)" if r["rewinds"] else "")
+    return s + (f" (rewound {r['rewinds']}×)" if r.get("rewinds") else "")
 
 
 def _strip_paths(obj):
@@ -230,8 +231,13 @@ def main(argv=None):
         paths[name] = make_dataset(name, spec, n_bits, data_dir, a.workers, a.seed + i)
 
     print(f"data ready in {time.time() - t0:.0f}s; running suites {sorted(suites)}")
+    dh_plan = None
+    if "dieharder" in suites and dieharder._exe():
+        # size every Dieharder test to the file, calibrated on the control (no rewinding)
+        ref = paths.get("urandom", paths[names[0]])
+        dh_plan = dieharder.calibrate(ref)
     with ThreadPoolExecutor(a.parallel) as ex:
-        futs = [ex.submit(analyse, n, paths[n], suites, n_seq) for n in names]
+        futs = [ex.submit(analyse, n, paths[n], suites, n_seq, dh_plan) for n in names]
         results = []
         for n, f in zip(names, futs):
             results.append(f.result())
