@@ -5,20 +5,17 @@
 
 ---
 
-> **New: randomness test-suite harness** (`hqrng/`). Generates large, shot-ordered
-> bitstreams from Models A–D, estimates min-entropy (SP 800-90B style), applies a
-> Toeplitz extractor, and runs **NIST SP 800-22** (official STS, full 100-sequence
-> protocol), **TestU01** and **Dieharder**, with one command:
-> `python -m hqrng.pipeline --profile full`.
-> See [docs/TEST_SUITES.md](docs/TEST_SUITES.md) for usage and
-> [docs/FINDINGS.md](docs/FINDINGS.md) for review notes that affect some results below
-> (in particular: Aer's output is Mersenne-Twister pseudo-randomness, and Models A–D
-> prepare the same state). Latest results: [results/full/summary.md](results/full/summary.md).
+> **🧪 New: randomness test suites.** Test any bit stream with **NIST SP 800-22**,
+> **TestU01** and **Dieharder**, with **Toeplitz** extraction, in one command.
+> Start here: [Randomness Test Suites — Quick Start](#-randomness-test-suites--quick-start).
+> Latest results: [results/full/summary.md](results/full/summary.md).
+> Review notes that affect some results below: [docs/FINDINGS.md](docs/FINDINGS.md).
 
 ---
 
 ## 📌 Table of Contents
 
+- [Randomness Test Suites — Quick Start](#-randomness-test-suites--quick-start)
 - [Overview](#-overview)
 - [Motivation](#-motivation)
 - [Circuit Architectures](#-circuit-architectures)
@@ -32,6 +29,141 @@
 - [Key Findings](#-key-findings)
 - [Limitations & Future Work](#-limitations--future-work)
 - [References](#-references)
+
+---
+
+## 🧪 Randomness Test Suites — Quick Start
+
+The `hqrng/` package runs the whole testing pipeline for you and writes one summary table:
+
+```
+raw bits ──► entropy estimate ──► Toeplitz extractor ──► NIST SP 800-22 · TestU01 · Dieharder ──► summary.md
+```
+
+| Suite | What it checks |
+|---|---|
+| **NIST SP 800-22** | The US standard: 15 tests (188 results) for bias, streaks and repeated patterns, run on 100 × 1 million bits |
+| **TestU01** | Tougher academic tests (Rabbit, Alphabit, LinearComp). LinearComp spots bits that come from a formula |
+| **Dieharder** | Classic Diehard tests: small simulations whose answer is known for true randomness |
+| **Toeplitz extractor** | Not a test: turns slightly biased raw bits into fair ones, with a proven guarantee |
+| **Entropy estimate** | How much real randomness each raw bit holds (SP 800-90B style). Sets how much Toeplitz keeps |
+
+### What you need
+
+| | Linux / macOS | Windows |
+|---|---|---|
+| Python 3.10+ | ✓ | ✓ |
+| `gcc`, `curl`, `unzip` (to build the test tools) | `sudo apt install build-essential curl unzip` (macOS: Xcode command-line tools) | Git Bash plus MinGW `gcc`, e.g. from [MSYS2](https://www.msys2.org/) or [w64devkit](https://github.com/skeeto/w64devkit) |
+| Dieharder (optional) | `sudo apt install dieharder` | No Windows build: use [WSL](#dieharder-on-windows) or [GitHub Actions](#dieharder-on-windows) |
+
+### Step 1 — Install (once)
+
+```bash
+git clone -c core.longpaths=true https://github.com/Ameeghai/Quantum-RNG-Hybrid.git
+cd Quantum-RNG-Hybrid
+python -m venv .venv
+source .venv/bin/activate              # Windows Git Bash: source .venv/Scripts/activate
+pip install -r requirements.txt
+bash tools/setup_tools.sh              # downloads and builds NIST STS and TestU01 into third_party/
+python -m pytest -q tests              # should end with "19 passed"
+```
+
+> **Windows:** keep the project on a short path such as `C:\qrng`. Paths longer than
+> 260 characters break `gcc` and Qiskit Aer. If you build the tools somewhere else,
+> tell the scripts where: `export HQRNG_TOOLS=C:/qrng-tools`.
+
+### Step 2 — Run everything with one command
+
+```bash
+python -m hqrng.pipeline --profile quick --out results/quick   # 32 million bits per dataset, fastest
+python -m hqrng.pipeline --profile full  --out results/full    # 100 million bits per dataset (NIST's standard protocol)
+```
+
+This generates the data, runs every suite, and writes:
+
+- `results/<name>/summary.md`: one table with every dataset and suite
+- `results/<name>/summary.json`: every individual p-value
+
+Generated bits are saved in `data/` and reused next time. Run time depends on your CPU (the full profile took about 12 minutes on a 22-core machine).
+
+The datasets it tests by default:
+
+| Dataset | What it is |
+|---|---|
+| `urandom` | Your operating system's secure random generator: a control that should pass everything |
+| `aer_D_5k` | Model D exactly as in the notebooks (5000 shots per run) |
+| `aer_D_ideal` | Model D with large runs (100,000 shots per run) |
+| `aer_D_sym2pct` | Model D with the notebooks' 2% symmetric noise |
+| `aer_D_ibmlike` | Model D with realistic, uneven read-out errors like a real IBM chip |
+| `aer_D_ibmlike_toeplitz` | The same noisy bits after Toeplitz extraction |
+
+Useful options: `--datasets urandom,aer_D_ibmlike` (run only some), `--suites nist,testu01` (skip a suite), `--workers 4` (CPU cores to use).
+
+### Step 3 — Test your own bits (real hardware, ANU, notebook output)
+
+Save the bits as a file (raw bits packed 8 per byte, in the order they were measured):
+
+```python
+from hqrng.bitio import write_bits, read_qrng_header_bin
+
+write_bits("data/mybits.bin", bits)    # bits = any list/array of 0s and 1s
+
+# or convert a file saved by the notebooks:
+write_bits("data/notebook.bin", read_qrng_header_bin("qrng_output_AFTER_noise.bin").ravel())
+```
+
+For IBM Quantum hardware, keep the shot order: use `memory=True` or SamplerV2's `get_bitstrings()`, not `get_counts()`.
+
+Then run the steps one at a time:
+
+```bash
+python -m hqrng.entropy   data/mybits.bin --width 32                      # 1. prints h_min (randomness per bit)
+python -m hqrng.extractor data/mybits.bin data/mybits_clean.bin --h-min 0.95  # 2. Toeplitz; use the h_min from step 1
+python -m hqrng.suites.nist_sts  data/mybits_clean.bin                    # 3. NIST SP 800-22
+python -m hqrng.suites.testu01   data/mybits_clean.bin                    # 4. TestU01
+python -m hqrng.suites.dieharder data/mybits_clean.bin                    # 5. Dieharder (Linux/WSL)
+```
+
+How much data each test needs:
+
+| Test | Minimum | Recommended |
+|---|---|---|
+| NIST SP 800-22 | 100 × 1 million bits (12.5 MB) for the standard protocol | same |
+| TestU01 Rabbit / Alphabit | ~1.6 million / ~0.6 million bits | 100 million bits |
+| TestU01 LinearComp | ~26 million bits (3.2 MB) | same |
+| Dieharder | works on any size, but small files are re-read from the start, which causes false failures | gigabytes |
+
+### Dieharder on Windows
+
+Dieharder only runs on Linux. Two options:
+
+- **WSL:** run `wsl --install` in PowerShell, open Ubuntu, then
+  `sudo apt install dieharder build-essential curl unzip python3-venv` and follow Steps 1–2 inside it.
+- **GitHub Actions:** on GitHub, open **Actions → randomness-tests → Run workflow**, pick `quick` or `full`,
+  and download the `randomness-results-…` artifact when it finishes. It runs all suites, including Dieharder.
+
+### Reading the results
+
+- **NIST:** `188/188 ✓` is a pass. With 148 NonOverlappingTemplate tests, perfect random bits still fail
+  up to 3 by chance; the table marks that as "within chance".
+- **TestU01:** each test gives a p-value. Anything between 0.001 and 0.999 is a pass; a value stuck at 0 or 1 is a fail.
+- **Dieharder:** `PASSED` / `WEAK` / `FAILED`. A few `WEAK` results are normal.
+- **h_min:** 1.0 means perfectly fair bits. Real random data at this size gives about 0.997.
+- **Important:** tests can only find patterns. Passing does not prove the bits are quantum: a good formula passes too.
+  See [docs/FINDINGS.md](docs/FINDINGS.md).
+
+### Troubleshooting
+
+| Problem | Fix |
+|---|---|
+| `Filename too long` when cloning | Clone with `-c core.longpaths=true` into a short folder like `C:\qrng` |
+| `DLL load failed … filename too long` from Qiskit Aer (Windows) | Move the project and `.venv` to a short path |
+| `gcc: command not found` during setup | Install `gcc` (see [What you need](#what-you-need)) and run setup in a shell where `gcc --version` works |
+| NIST or TestU01 shows `unavailable` | The tools aren't built yet: run `bash tools/setup_tools.sh`, or set `HQRNG_TOOLS` to where you built them |
+| NIST or TestU01 reports `insufficient-data` | The file is too small; see the data table above |
+| Dieharder shows `unavailable` | It isn't installed; use Linux/WSL or GitHub Actions |
+
+More detail, including every option: [docs/TEST_SUITES.md](docs/TEST_SUITES.md).
 
 ---
 
@@ -101,7 +233,14 @@ QRNG-Project/
 │
 ├── results/
 │   ├── nist_input.txt                          # Binary output for NIST test suite
-│   └── correlation_matrices/                   # Saved correlation heatmaps (PNG)
+│   ├── correlation_matrices/                   # Saved correlation heatmaps (PNG)
+│   └── full/summary.md                         # Test-suite results (NIST, TestU01, Toeplitz)
+│
+├── hqrng/                                      # Test-suite harness: generate, entropy, Toeplitz, suites, pipeline
+├── tools/                                      # Build scripts for NIST STS and TestU01
+├── tests/                                      # Unit tests (pytest)
+├── docs/                                       # TEST_SUITES.md (how-to), FINDINGS.md (review notes)
+├── requirements.txt
 │
 └── README.md
 ```
@@ -121,6 +260,8 @@ QRNG-Project/
 ```bash
 pip install qiskit qiskit-aer numpy matplotlib scipy
 ```
+
+To run the randomness test suites as well, follow the [Quick Start](#-randomness-test-suites--quick-start) instead (`pip install -r requirements.txt` plus a one-time tool build).
 
 ### Optional: NIST SP 800-22 Test Suite
 
