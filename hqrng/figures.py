@@ -843,6 +843,87 @@ def fig25_parking_lot(out, bits, results):
     _save(fig, out, "fig25_parking_lot")
 
 
+def fig26_toeplitz_universal(out, bits, results):
+    """Why random Toeplitz matrices are 2-universal, plus a Monte Carlo check."""
+    rng = np.random.default_rng(12)
+    n, m = 12, 7
+    seed = rng.integers(0, 2, n + m - 1)
+    T = toeplitz_matrix(seed, n, m)
+    d = np.zeros(n, int)
+    d[[3, 6, 7, 10]] = 1
+    j0 = int(np.flatnonzero(d)[0])
+
+    # Monte Carlo: P[T d = 0] over random seeds and random non-zero d, versus 2^-m
+    N, nn = 400_000, 16
+    mc = []
+    for mm in (2, 4, 6, 8):
+        S = rng.integers(0, 2, (N, nn + mm - 1), dtype=np.uint8)
+        D = rng.integers(0, 2, (N, nn), dtype=np.uint8)
+        D[D.sum(1) == 0, 0] = 1
+        zero = np.ones(N, bool)
+        for i in range(mm):
+            acc = np.zeros(N, np.uint8)
+            for j in range(nn):
+                acc ^= S[:, i - j + nn - 1] & D[:, j]
+            zero &= acc == 0
+        mc.append(dict(m=mm, measured=float(zero.mean()), theory=2.0 ** -mm, trials=N))
+    DATA["toeplitz_universal"] = dict(n=nn, checks=mc)
+
+    fig, (a1, a2) = plt.subplots(1, 2, figsize=(9.5, 4.5), gridspec_kw=dict(width_ratios=[1.35, 1]))
+    cm = LinearSegmentedColormap.from_list("t", ["#F3F0FA", C_SIM])
+    a1.imshow(np.vstack([d, np.full(n, -1), T]), cmap=cm, vmin=0, vmax=1, aspect="equal")
+    a1.imshow(np.vstack([np.where(d == 1, 1.0, np.nan), np.full((m + 1, n), np.nan)]),
+              cmap=LinearSegmentedColormap.from_list("o", [C_NOISY, C_NOISY]), aspect="equal")
+    for i in range(m):
+        a1.add_patch(plt.Rectangle((j0 - 0.5, i + 1.5), 1, 1, fill=False, ec=C_NOISY, lw=2.5))
+        a1.text(n - 0.2, i + 2, f"  s[{i - j0 + n - 1}]", va="center", fontsize=11, color=C_NOISY)
+    a1.text(-0.8, 0, "d", ha="right", va="center", fontsize=13, fontweight="bold", color=C_NOISY)
+    a1.text(-0.8, 2 + m / 2 - 0.5, "T", ha="right", va="center", fontsize=13, fontweight="bold", color=C_SIM)
+    a1.set_xlim(-1.5, n + 2.3)
+    a1.set_xticks([])
+    a1.set_yticks([])
+    a1.grid(False)
+    for sp in a1.spines.values():
+        sp.set_visible(False)
+    a1.set_title(f"First 1 of d at column j₀ = {j0}:\nevery row gets a new seed bit", fontsize=14)
+    ms = [c["m"] for c in mc]
+    a2.bar(np.arange(len(ms)) - 0.18, [c["theory"] for c in mc], 0.36, color=GRID, ec=C_SIM, label="2⁻ᵐ (theory)")
+    a2.bar(np.arange(len(ms)) + 0.18, [c["measured"] for c in mc], 0.36, color=C_SIM, label="measured")
+    a2.set_yscale("log")
+    a2.set_xticks(range(len(ms)))
+    a2.set_xticklabels([f"m = {x}" for x in ms])
+    a2.set_ylabel("P[ h(x) = h(x′) ]")
+    a2.set_title(f"Collision probability\n(n = {nn}, {N // 1000:,}k trials each)", fontsize=14)
+    a2.legend(fontsize=11)
+    fig.tight_layout()
+    _save(fig, out, "fig26_toeplitz_universal")
+
+
+def fig27_lhl_tradeoff(out, bits, results):
+    """Security (−log2 ε) versus bits kept, for our block."""
+    l = DATA.get("lhl") or {}
+    k = l.get("entropy_in", 15739.7)
+    m = np.linspace(14900, k, 300)
+    sec = (k - m) / 2
+    m0 = l.get("m", 15536)
+    fig, ax = plt.subplots(figsize=(8.5, 4.4))
+    ax.plot(m, sec, color=C_SIM, lw=2.8)
+    ax.fill_between(m, sec, 0, where=sec >= 100, color="#EDE9FE")
+    ax.axhline(100, color=C_NOISY, ls="--", lw=1.4)
+    ax.text(14920, 104, "target: ε = 2⁻¹⁰⁰", color=C_NOISY, fontsize=12)
+    ax.scatter([m0], [(k - m0) / 2], color=C_NOISY, s=80, zorder=3)
+    sup = str(round((k - m0) / 2)).translate(str.maketrans("0123456789", "⁰¹²³⁴⁵⁶⁷⁸⁹"))
+    ax.annotate(f"our choice: m = {m0:,}, ε ≈ 2⁻{sup}", (m0, (k - m0) / 2), (15020, 35),
+                arrowprops=dict(arrowstyle="->", color=MUTED), fontsize=12)
+    ax.axvline(k, color=MUTED, ls=":", lw=1.2)
+    ax.text(k - 8, 380, f"k = {k:,.0f}\n(all the\nmin-entropy)", ha="right", va="top", fontsize=11, color=MUTED)
+    ax.set_xlabel("output bits kept per 16,384-bit block (m)")
+    ax.set_ylabel("security: −log₂ ε (bits)")
+    ax.set_ylim(0, 430)
+    ax.set_title("Each bit kept costs ½ bit of security: −log₂ ε = (k − m)/2", fontsize=13.5)
+    _save(fig, out, "fig27_lhl_tradeoff")
+
+
 def data_extras(results):
     """Small worked examples and tables for native slides."""
     DATA["monobit_example"] = dict(bits="1011010101", n=10, S=2, s_obs=round(2 / math.sqrt(10), 6),
@@ -868,7 +949,7 @@ FIGURES = {f.__name__.split("_")[0]: f for f in [
     fig10_hmin_datasets, fig11_piling_up, fig12_toeplitz_structure, fig13_toeplitz_example, fig14_lhl_length,
     fig15_column_bias, fig16_column_heatmap, fig17_bytepair, fig18_autocorr, fig19_pvalue_hist,
     fig20_proportion, fig21_nist_heatmap, fig22_testu01_strip, fig23_random_walk, fig24_throughput,
-    fig25_parking_lot]}
+    fig25_parking_lot, fig26_toeplitz_universal, fig27_lhl_tradeoff]}
 
 
 def main(argv=None):

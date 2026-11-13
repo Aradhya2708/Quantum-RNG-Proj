@@ -2,6 +2,8 @@
 
 Built: `presentation/QRNG_Testing_Lecture.pptx` (generator: `presentation/build_deck.js`).
 
+**Revision 2 (built deck, 29 slides):** sections A and B simplified (noise and read-out profile merged into one slide, less text throughout); two maths slides added to section C (why Toeplitz hashing is 2-universal, with a Monte Carlo check, and a derivation of the Leftover Hash Lemma); section D text shortened and the worked NIST examples (19) removed; the limitations slide (29) removed; authors Aradhya Mahajan (B23CS1088) and Amee Ghai (B23PH1003) added. The outline below is the original plan.
+
 Long-form lecture, 30 slides, about 75–90 minutes (2.5–3 minutes per slide).
 Every figure below is already generated in `figures/` by `python -m hqrng.figures`;
 the numbers for native PowerPoint charts and tables are in `figures/data.json`.

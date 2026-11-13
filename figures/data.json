@@ -3177,5 +3177,34 @@
    "mean_parked": 3523,
    "sd": 21.9
   }
+ },
+ "toeplitz_universal": {
+  "n": 16,
+  "checks": [
+   {
+    "m": 2,
+    "measured": 0.25006,
+    "theory": 0.25,
+    "trials": 400000
+   },
+   {
+    "m": 4,
+    "measured": 0.062565,
+    "theory": 0.0625,
+    "trials": 400000
+   },
+   {
+    "m": 6,
+    "measured": 0.0153425,
+    "theory": 0.015625,
+    "trials": 400000
+   },
+   {
+    "m": 8,
+    "measured": 0.004,
+    "theory": 0.00390625,
+    "trials": 400000
+   }
+  ]
  }
 }

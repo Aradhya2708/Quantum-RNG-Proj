@@ -37,6 +37,7 @@ const W = 13.333, H = 7.5, MX = 0.6, CW = W - 2 * MX;
 const pres = new pptxgen();
 pres.layout = "LAYOUT_WIDE";
 pres.title = "Testing Quantum Random Number Generators";
+pres.author = "Aradhya Mahajan, Amee Ghai";
 pres.subject = "Entropy estimation, Toeplitz extraction and statistical test suites";
 pres.theme = { headFontFace: FONT, bodyFontFace: FONT };
 
@@ -47,8 +48,8 @@ pres.defineSlideMaster({
   objects: [
     { placeholder: { options: { name: "title", type: "title", x: MX, y: 0.62, w: 11.2, h: 0.8,
         fontFace: FONT, fontSize: 26, bold: true, color: INK, valign: "top", align: "left", margin: 0 }, text: "" } },
-    { text: { text: "Testing Quantum Random Number Generators", options: {
-        x: MX, y: 7.02, w: 8, h: 0.3, fontFace: FONT, fontSize: 9, color: GRAY, margin: 0 } } },
+    { text: { text: "Testing Quantum Random Number Generators  ·  Aradhya Mahajan & Amee Ghai", options: {
+        x: MX, y: 7.02, w: 9, h: 0.3, fontFace: FONT, fontSize: 9, color: GRAY, margin: 0 } } },
   ],
   slideNumber: { x: 12.13, y: 7.02, w: 0.6, h: 0.3, fontFace: FONT, fontSize: 9, color: GRAY, align: "right" },
 });
@@ -243,7 +244,9 @@ pres.addSection({ title: "A. Problem and test source" });
     { text: "Dieharder", options: { bold: true, color: PURPLE } }, { text: "  ·  ", options: { color: GRAY } },
     { text: "SP 800-90B", options: { bold: true, color: PURPLE } },
   ], { x: MX, y: 5.0, w: 6.6, h: 0.4, fontFace: FONT, fontSize: 13, margin: 0, isTextBox: true });
-  s.addText("IIT Jodhpur  ·  November 2026", { x: MX, y: 6.55, w: 6, h: 0.35, fontFace: FONT, fontSize: 11,
+  s.addText("Aradhya Mahajan (B23CS1088)  ·  Amee Ghai (B23PH1003)", { x: MX, y: 5.95, w: 6.8, h: 0.4, fontFace: FONT, fontSize: 13, bold: true,
+    color: INK, margin: 0, isTextBox: true });
+  s.addText("IIT Jodhpur  ·  November 2026", { x: MX, y: 6.4, w: 6, h: 0.35, fontFace: FONT, fontSize: 11,
     color: GRAY, margin: 0, isTextBox: true });
   s.addNotes("Welcome. This lecture is about one question: how do you know that a random number generator, and in particular a quantum one, is actually producing good random bits? We will build a complete testing pipeline: generate bits from a quantum circuit, estimate how much real randomness they contain, clean them with a Toeplitz extractor, and run them through four standard test suites. Every chart in this talk comes from our own code and data.");
 }
@@ -254,69 +257,48 @@ pres.addSection({ title: "A. Problem and test source" });
 {
   const s = content("A. Problem and test source", "A · Motivation", "Weak randomness breaks real systems",
     "Random numbers protect keys, nonces and signatures. Two real incidents show what happens when they are weak: Debian's OpenSSL (2006-2008) seeded its generator with only the process ID, so there were only 32,768 possible keys per key type; and Sony's PS3 firmware signed code with ECDSA using the same 'random' nonce every time, which let attackers compute the private key. On the right: the three families of generators. A PRNG is a formula and is predictable by anyone with the seed; a classical TRNG measures physical noise that is unpredictable only because we lack information; a QRNG measures a quantum outcome that is undetermined until it is measured.");
-  bullets(s, [
-    { h: "Where randomness is consumed" },
-    "Cryptographic keys, nonces and IVs, session tokens",
-    "One-time pads and quantum key distribution",
-    "Monte Carlo simulation, randomised algorithms, lotteries",
-  ], { x: MX, y: 1.5, w: 5.6, h: 1.45 });
-  card(s, { x: MX, y: 3.1, w: 2.7, h: 2.3, head: "DEBIAN OPENSSL · 2008", big: "32,768",
-    body: "possible keys: the generator was seeded only with the process ID (CVE-2008-0166)." });
-  card(s, { x: MX + 2.9, y: 3.1, w: 2.7, h: 2.3, head: "SONY PS3 · 2010", big: "1 nonce",
-    body: "reused for every ECDSA signature, so the private signing key could be solved for." });
-  para(s, "Randomness failures are silent: the output **looks** random, and nothing crashes.",
-    { x: MX, y: 5.6, w: 5.6, h: 0.7 }, { fontSize: 12.5 });
+  para(s, "Keys, nonces and simulations assume the random bits **cannot be guessed**. When they can, nothing crashes: the system is silently broken.",
+    { x: MX, y: 1.5, w: 5.6, h: 1.05 }, { fontSize: 14 });
+  card(s, { x: MX, y: 2.75, w: 5.6, h: 1.75, head: "DEBIAN OPENSSL · 2008", big: "32,768 keys",
+    body: "were all that was possible: the generator was seeded only with the process ID", bodySize: 12 });
+  card(s, { x: MX, y: 4.7, w: 5.6, h: 1.75, head: "SONY PS3 · 2010", big: "1 nonce",
+    body: "reused for every signature, so the private signing key could be computed", bodySize: 12 });
   const rows = [
     [hcell(""), hcell("PRNG"), hcell("Classical TRNG"), hcell("Quantum RNG")],
-    [cell("Source", { bold: true }), cell("Formula + seed"), cell("Thermal / chaotic noise"), cell("Quantum measurement")],
-    [cell("Deterministic?", { bold: true }), cell("Yes"), cell("No"), cell("No")],
-    [cell("Predictable by", { bold: true }), cell("Anyone with the seed"), cell("Better physical model"), cell("Nobody (Born rule)")],
-    [cell("Typical rate", { bold: true }), cell("Gbit/s"), cell("Mbit/s"), cell("Mbit/s – Gbit/s")],
-    [cell("Example", { bold: true }), cell("Mersenne Twister, ChaCha20"), cell("Ring oscillators, RDSEED"), cell("Photon timing, vacuum noise, qubits")],
-    [cell("Still needs", { bold: true }), cell("A good seed"), cell("Entropy estimate + extraction"), cell("Entropy estimate + extraction")],
+    [cell("Source", { bold: true, fontSize: 12 }), cell("Formula + seed", { fontSize: 12 }), cell("Thermal noise", { fontSize: 12 }), cell("Quantum measurement", { fontSize: 12 })],
+    [cell("Predictable by", { bold: true, fontSize: 12 }), cell("Anyone with the seed", { fontSize: 12 }), cell("A better model", { fontSize: 12 }), cell("Nobody", { fontSize: 12, bold: true, color: PURPLE })],
+    [cell("Example", { bold: true, fontSize: 12 }), cell("Mersenne Twister", { fontSize: 12 }), cell("Ring oscillators", { fontSize: 12 }), cell("Qubits, photons", { fontSize: 12 })],
   ];
-  s.addTable(rows, { x: 6.55, y: 1.55, w: 6.18, colW: [1.38, 1.5, 1.6, 1.7], border: TB, rowH: 0.5,
-    fontFace: FONT, fontSize: 11 });
-  caption(s, "Every generator needs testing; only the quantum one is unpredictable in principle.", { x: 6.55, y: 5.75, w: 6.18, h: 0.4 });
+  s.addTable(rows, { x: 6.55, y: 1.55, w: 6.18, colW: [1.5, 1.5, 1.5, 1.68], border: TB, rowH: 0.75 });
+  caption(s, "Every generator needs testing; only the quantum one is unpredictable in principle.", { x: 6.55, y: 4.75, w: 6.18, h: 0.4 });
 }
 
 // =================================================================================
-// 3. Pipeline and failure modes
+// 3. Pipeline
 // =================================================================================
 {
-  const s = content("A. Problem and test source", "A · Approach", "From a quantum source to a verdict, step by step",
-    "This is the roadmap for the rest of the talk. A quantum source produces raw bits. Before using them we estimate their min-entropy: how much genuine unpredictability each bit carries. That number sizes a Toeplitz extractor, which compresses the raw bits into nearly uniform output. Then three independent statistical suites look for any pattern at all. Below: the five things that typically go wrong, and which stage is designed to catch each of them.");
+  const s = content("A. Problem and test source", "A · Approach", "From a quantum source to a verdict",
+    "This is the roadmap for the rest of the talk. A quantum source produces raw bits. Before using them we estimate their min-entropy: how much genuine unpredictability each bit carries. That number sizes a Toeplitz extractor, which compresses the raw bits into nearly uniform output. Then three independent statistical suites look for any pattern at all. We run this on six datasets of 100 million bits each.");
   const steps = [
-    ["Quantum source", "32-qubit circuit\non Qiskit Aer"], ["Raw bits", "packed, in shot order"],
-    ["Entropy estimate", "how much is\nunpredictable?"], ["Toeplitz extractor", "compress to\nuniform bits"],
-    ["Test suites", "NIST, TestU01,\nDieharder"], ["Verdict", "reject or\n'no pattern found'"],
+    ["Quantum source", "32-qubit circuit"], ["Raw bits", "in shot order"],
+    ["Entropy estimate", "how random?"], ["Toeplitz extractor", "make uniform"],
+    ["Test suites", "find patterns"], ["Verdict", "reject or pass"],
   ];
-  const gap = 0.3, bw = (CW - 5 * gap) / 6, y = 1.65;
+  const gap = 0.3, bw = (CW - 5 * gap) / 6, y = 1.85;
   steps.forEach(([t, sub], i) => {
     const x = MX + i * (bw + gap);
     const strong = i === 3 || i === 4;
-    s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y, w: bw, h: 1.35, rectRadius: 0.1,
+    s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y, w: bw, h: 1.55, rectRadius: 0.1,
       fill: { color: strong ? PURPLE : LAV2 }, line: { color: strong ? PURPLE : LINE, width: 1 } });
-    s.addText(t, { x: x + 0.08, y: y + 0.12, w: bw - 0.16, h: 0.4, fontFace: FONT, fontSize: 12.5, bold: true,
-      color: strong ? "FFFFFF" : INK, align: "center", margin: 0, isTextBox: true });
-    s.addText(sub, { x: x + 0.08, y: y + 0.55, w: bw - 0.16, h: 0.7, fontFace: FONT, fontSize: 10.5,
+    s.addText(t, { x: x + 0.08, y: y + 0.25, w: bw - 0.16, h: 0.65, fontFace: FONT, fontSize: 14, bold: true,
+      color: strong ? "FFFFFF" : INK, align: "center", valign: "middle", margin: 0, isTextBox: true });
+    s.addText(sub, { x: x + 0.08, y: y + 0.95, w: bw - 0.16, h: 0.4, fontFace: FONT, fontSize: 12,
       color: strong ? "FFFFFF" : GRAY, align: "center", margin: 0, isTextBox: true });
-    if (i < steps.length - 1) arrow(s, x + bw + 0.04, y + 0.675, x + bw + gap - 0.04, y + 0.675, PURPLE);
+    if (i < steps.length - 1) arrow(s, x + bw + 0.04, y + 0.775, x + bw + gap - 0.04, y + 0.775, PURPLE);
   });
-  para(s, "What can go wrong, and what catches it", { x: MX, y: 3.35, w: 8, h: 0.35 }, { fontSize: 14, bold: true });
-  const fails = [
-    ["Physical bias", "More 0s than 1s overall", "entropy estimate, NIST, TestU01"],
-    ["Uneven qubits", "Each qubit leans differently", "per-position entropy, bias map"],
-    ["Hidden PRNG", "A formula inside the chain", "TestU01 LinearComp, Berlekamp–Massey"],
-    ["Drift and correlation", "Bits depend on earlier bits", "Markov estimate, runs, serial tests"],
-    ["Too little data", "Tests without power", "NIST protocol: 100 × 10⁶ bits"],
-  ];
-  const fw = (CW - 4 * 0.2) / 5;
-  fails.forEach(([t, d, by], i) => {
-    const x = MX + i * (fw + 0.2);
-    card(s, { x, y: 3.85, w: fw, h: 2.05, head: t.toUpperCase(), body: `${d}\n\n**Caught by:** ${by}`, bodySize: 11.5 });
-  });
-  para(s, "Stages 3 and 4 turn a physical source into a usable generator; the suites only judge the result.", { x: MX, y: 6.15, w: CW, h: 0.4 }, { fontSize: 12.5, color: GRAY });
+  card(s, { x: MX, y: 4.35, w: 3.9, h: 1.6, head: "DATASETS", big: "6", body: "a control, four simulator set-ups, one extracted" });
+  card(s, { x: MX + 4.11, y: 4.35, w: 3.9, h: 1.6, head: "PER DATASET", big: "10⁸ bits", body: "the size NIST's protocol asks for" });
+  card(s, { x: MX + 8.22, y: 4.35, w: 3.91, h: 1.6, head: "TOOLS", big: "4", body: "NIST SP 800-22, TestU01, Dieharder, SP 800-90B" });
 }
 
 // =================================================================================
@@ -328,12 +310,11 @@ pres.addSection({ title: "A. Problem and test source" });
   img(s, "fig01_circuits.png", { x: MX, y: 1.5, w: 5.9, h: 4.35 }, { align: "left", alt: "Circuit diagrams of variants A to D, 6 qubits each" });
   caption(s, "Variants A–D drawn with 6 qubits (we run 32). X = seed bit, H = Hadamard.", { x: MX, y: 5.95, w: 5.9, h: 0.4 });
   bullets(s, [
-    "**X → H** on every qubit; B, D add a random **CNOT matching**; C, D **shuffle the read-out** order",
-    "Statevector check: every outcome has probability **exactly 2⁻ⁿ**, and each qubit's entanglement is **10⁻¹⁵** (round-off)",
-    "Why: CNOT maps products of |+⟩/|−⟩ to products of |+⟩/|−⟩ — e.g. |−⟩|−⟩ → |+⟩|−⟩",
-    "So the variants are **identical on a simulator**; on hardware each CNOT only adds gate error",
-  ], { x: 6.85, y: 1.5, w: 5.88, h: 2.75 }, { fontSize: 12.5 });
-  img(s, "fig02_variants_uniform.png", { x: 6.85, y: 4.3, w: 5.88, h: 2.2 }, { alt: "Entanglement and deviation from uniform per variant" });
+    "**X → H** on every qubit; B, D add **CNOTs**; C, D **shuffle the read-out**",
+    "All four give an **exactly uniform**, **unentangled** state",
+    "So on a simulator the variants are **identical**",
+  ], { x: 6.85, y: 1.6, w: 5.88, h: 1.85 }, { fontSize: 15, space: 12 });
+  img(s, "fig02_variants_uniform.png", { x: 6.85, y: 3.55, w: 5.88, h: 2.9 }, { alt: "Entanglement and deviation from uniform per variant" });
 }
 
 // =================================================================================
@@ -370,38 +351,21 @@ pres.addSection({ title: "A. Problem and test source" });
   ORDER.forEach((d) => rows.push([cell(NAMES[d].replace("Simulator, ", "Sim, "), { bold: true, fontSize: 10.5 }),
     cell(what[d], { fontSize: 10.5 }),
     cell(SB(d).ones_percent.toFixed(3), { align: "right", fontSize: 10.5, color: d === "aer_D_ibmlike" ? ORANGE : INK, bold: d === "aer_D_ibmlike" })]));
-  s.addTable(rows, { x: 7.15, y: 1.5, w: 5.58, colW: [2.15, 2.53, 0.9], border: TB, rowH: 0.42 });
-  card(s, { x: 7.15, y: 4.75, w: 2.7, h: 1.85, head: "PER DATASET", big: "10⁸ bits", body: "12.5 MB, NIST's standard size" });
-  card(s, { x: 10.03, y: 4.75, w: 2.7, h: 1.85, head: "REPRODUCIBLE", big: "1 seed", body: "same bits for any number of workers" });
+  s.addTable(rows, { x: 7.15, y: 1.5, w: 5.58, colW: [2.15, 2.53, 0.9], border: TB, rowH: 0.7 });
 }
 
 // =================================================================================
-// 6. Noise and bias
+// 6. Noise and bias (merged with read-out profile)
 // =================================================================================
 pres.addSection({ title: "B. Noise and pitfalls" });
 {
-  const s = content("B. Noise and pitfalls", "B · Noise", "Only uneven read-out error can bias a fair qubit",
-    "A fair bit XORed with an independent flip is still fair, at any flip rate: P(1) = 1/2 (1-p) + 1/2 p = 1/2. So a symmetric noise model can never make a simulated QRNG fail a bias test, however large the error rate. Real superconducting qubits are different: during read-out a qubit in state 1 can decay to 0, so P(read 0 | was 1) is several times larger than P(read 1 | was 0). Then P(1) = 1/2 (1 - P(0|1)) + 1/2 P(1|0), which is below one half. The dots are Aer simulations at six error rates, 1.28 million bits each; they sit on the formula.");
-  card(s, { x: MX, y: 1.55, w: 4.6, h: 1.75, head: "SYMMETRIC FLIP (RATE p)", big: "P(1) = ½",
-    body: "½(1 − p) + ½·p = ½ for **every** p. A symmetric noise model cannot produce a biased QRNG.", bigSize: 24 });
-  card(s, { x: MX, y: 3.5, w: 4.6, h: 2.0, head: "UNEVEN READ-OUT", big: "P(1) = ½(1 − P₀|₁) + ½·P₁|₀", bigSize: 17,
-    body: "On superconducting chips |1⟩ **decays to |0⟩** during measurement, so P(0|1) ≫ P(1|0) and every qubit leans towards 0.", fill: "FDF2EC", color: ORANGE });
-  para(s, "A simulated QRNG with only symmetric noise can **never** fail a bias test: the noise model has to be realistic.", { x: MX, y: 5.7, w: 4.6, h: 0.8 }, { fontSize: 12 });
-  img(s, "fig03_noise_bias.png", { x: 5.45, y: 1.5, w: 7.28, h: 4.95 }, { alt: "P(1) versus error rate for symmetric and uneven noise" });
-}
-
-// =================================================================================
-// 7. Read-out profile
-// =================================================================================
-{
   const rb = DATA.readout_ibm_like;
-  const worst = Math.min(...rb.expected_p1);
-  const s = content("B. Noise and pitfalls", "B · Noise", "A realistic read-out profile: every qubit leans towards 0",
-    "To make the simulator behave like a real chip, each of the 32 qubits gets its own read-out error, drawn from the range seen on IBM devices: 1 to 6 percent for reading a 1 as 0, and 0.2 to 1.5 percent the other way round. The bottom panel is the consequence: every qubit produces fewer than 50 percent ones, by up to 2.7 percentage points, and the average output is 48.69 percent ones. That is a small bias by eye, but at 10 to the 8 bits it is overwhelming statistical evidence.");
-  img(s, "fig04_readout_table.png", { x: MX, y: 1.5, w: 8.3, h: 5.0 }, { align: "left", alt: "Per-qubit read-out error rates and resulting bias" });
-  card(s, { x: 9.15, y: 1.5, w: 3.58, h: 1.45, head: "MEAN OUTPUT", big: `${(rb.mean_p1 * 100).toFixed(2)} % ones`, bigSize: 22 });
-  card(s, { x: 9.15, y: 3.1, w: 3.58, h: 1.45, head: "WORST QUBIT", big: `${((worst - 0.5) * 100).toFixed(1)} points`, bigSize: 22 });
-  card(s, { x: 9.15, y: 4.7, w: 3.58, h: 1.8, head: "ERROR RANGES", body: "Decay P(0|1) = **1–6 %**\nExcitation P(1|0) = **0.2–1.5 %**\nPer qubit, fixed seed 2026", bodySize: 11.5 });
+  const s = content("B. Noise and pitfalls", "B · Noise", "Only uneven read-out error can bias a fair qubit",
+    "A fair bit XORed with an independent flip is still fair, at any flip rate: P(1) = 1/2 (1-p) + 1/2 p = 1/2. So a symmetric noise model can never make a simulated QRNG fail a bias test, however large the error rate. Real superconducting qubits are different: during read-out a qubit in state 1 can decay to 0, so P(read 0 | was 1) is several times larger than P(read 1 | was 0). Then P(1) = 1/2 (1 - P(0|1)) + 1/2 P(1|0), which is below one half. The dots are Aer simulations at six error rates, 1.28 million bits each; they sit on the formula. To make the simulator behave like a real chip, each of the 32 qubits gets its own read-out error, drawn from the range seen on IBM devices: 1 to 6 percent for reading a 1 as 0, and 0.2 to 1.5 percent the other way round. The bottom panel is the consequence: every qubit produces fewer than 50 percent ones, by up to 2.7 percentage points, and the average output is 48.69 percent ones. That is a small bias by eye, but at 10 to the 8 bits it is overwhelming statistical evidence.");
+  img(s, "fig03_noise_bias.png", { x: MX, y: 1.5, w: 5.95, h: 3.7 }, { alt: "P(1) versus error rate for symmetric and uneven noise" });
+  img(s, "fig04_readout_table.png", { x: 6.78, y: 1.5, w: 5.95, h: 3.7 }, { alt: "Per-qubit read-out error rates and resulting bias" });
+  card(s, { x: MX, y: 5.35, w: 5.95, h: 1.2, head: "SYMMETRIC FLIP, ANY RATE", big: "P(1) = ½(1 − p) + ½p = ½", bigSize: 17 });
+  card(s, { x: 6.78, y: 5.35, w: 5.95, h: 1.2, head: "UNEVEN READ-OUT (IBM-LIKE, 32 QUBITS)", big: `${(rb.mean_p1 * 100).toFixed(2)} % ones`, bigSize: 17, fill: "FDF2EC", color: ORANGE });
 }
 
 // =================================================================================
@@ -410,19 +374,12 @@ pres.addSection({ title: "B. Noise and pitfalls" });
 {
   const s = content("B. Noise and pitfalls", "B · Pitfalls", "Simple metrics measure the sample size, not the source",
     "Two common metrics look informative but are not. Left: if you count 32-bit outcomes, there are four billion possible values, so with N shots almost every outcome appears exactly once and both Shannon and min-entropy of the counts equal log2 N: 12.29 bits at 5,000 shots, for any good source. A single repeated outcome, which happens about 0.3 percent of the time at 5,000 shots, drops the min-entropy by a full bit. Right: the average absolute correlation between bit positions of independent bits is not zero but sqrt(2 / pi N), the sampling-noise floor. Measured values on our control sit exactly on that curve. Neither metric can tell a good source from a bad one; that is what entropy estimators and test suites are for.");
-  img(s, "fig05_entropy_saturation.png", { x: MX, y: 1.5, w: 5.95, h: 3.35 }, { alt: "Entropy of counts versus number of shots" });
-  img(s, "fig06_correlation_floor.png", { x: 6.78, y: 1.5, w: 5.95, h: 2.6 }, { alt: "Mean absolute correlation versus shots, and a correlation matrix" });
-  bullets(s, [
-    "2³² outcomes, N shots → nearly all distinct, so entropy of the counts = **log₂N**",
-    "N = 5,000 → **12.29 bits** for any good source (true value: 32)",
-    "One repeat (birthday collision, **p ≈ 0.29 %**) costs exactly 1 bit of min-entropy",
-  ], { x: MX, y: 5.0, w: 5.95, h: 1.6 }, { fontSize: 12 });
-  bullets(s, [
-    "Independent bits still show correlation **√(2/πN)**",
-    "**0.0178** at N = 2,000 and **0.0113** at N = 5,000",
-    "Our control data sit **exactly on the curve**",
-    "Only correlation clearly **above** this floor means anything",
-  ], { x: 6.78, y: 4.25, w: 5.95, h: 2.3 }, { fontSize: 12 });
+  img(s, "fig05_entropy_saturation.png", { x: MX, y: 1.5, w: 5.95, h: 3.9 }, { alt: "Entropy of counts versus number of shots" });
+  img(s, "fig06_correlation_floor.png", { x: 6.78, y: 1.5, w: 5.95, h: 3.9 }, { alt: "Mean absolute correlation versus shots, and a correlation matrix" });
+  para(s, "Entropy of 32-bit outcome counts is just **log₂N**: 12.29 bits at N = 5,000 for any good source.",
+    { x: MX, y: 5.6, w: 5.95, h: 0.9 }, { fontSize: 13.5 });
+  para(s, "Independent bits still correlate by **√(2/πN)**; our control sits exactly on that floor.",
+    { x: 6.78, y: 5.6, w: 5.95, h: 0.9 }, { fontSize: 13.5 });
 }
 
 // =================================================================================
@@ -433,13 +390,12 @@ pres.addSection({ title: "B. Noise and pitfalls" });
     "Qiskit Aer simulates X, H and CNOT circuits with its stabilizer method, and draws every random measurement outcome from a Mersenne Twister, MT19937. The same seed_simulator gives bit-identical output. Linear complexity makes this visible: it is the length of the shortest linear feedback shift register that reproduces a sequence, found by the Berlekamp-Massey algorithm. Random bits have linear complexity close to n over 2. For one bit position of Aer's output, the complexity grows like random data and then stops at exactly 19,937 - the size of the Mersenne Twister state - because every later bit is a linear function of the previous 19,937. The small example: a 4-bit LFSR has linear complexity 4 forever. Conclusion: simulation is good for building and validating the pipeline, but claims about quantum randomness need hardware.");
   img(s, "fig07_linear_complexity.png", { x: MX, y: 1.5, w: 7.3, h: 3.95 }, { align: "left", alt: "Linear complexity profile: random vs Aer" });
   card(s, { x: MX, y: 5.6, w: 7.3, h: 0.9, head: "CONSEQUENCE",
-    body: "A simulator validates the **pipeline**, not the **physics**: with the seed, its output is fully predictable.", bodySize: 11.5 });
+    body: "A simulator validates the **pipeline**, not the **physics**.", bodySize: 12.5 });
+  img(s, "fig08_lfsr_example.png", { x: 8.2, y: 1.5, w: 4.53, h: 2.6 }, { alt: "4-bit LFSR example with linear complexity 4" });
   bullets(s, [
-    "Aer's stabilizer method draws each outcome from **MT19937**; same seed → **identical bits**",
-    "**Linear complexity** L(n): shortest LFSR that reproduces n bits (Berlekamp–Massey)",
-    "Random bits: L ≈ **n/2**. One bit position of Aer: L stops at **19,937**",
-  ], { x: 8.2, y: 1.5, w: 4.53, h: 1.9 }, { fontSize: 12 });
-  img(s, "fig08_lfsr_example.png", { x: 8.2, y: 3.55, w: 4.53, h: 2.95 }, { alt: "4-bit LFSR example with linear complexity 4" });
+    "Aer draws every outcome from **MT19937**: same seed → same bits",
+    "Linear complexity stops at **19,937** instead of growing as n/2",
+  ], { x: 8.2, y: 4.35, w: 4.53, h: 2.2 }, { fontSize: 13.5, space: 10 });
 }
 
 // =================================================================================
@@ -518,6 +474,45 @@ pres.addSection({ title: "C. Entropy and extraction" });
 }
 
 // =================================================================================
+// 131. Why Toeplitz hashing works
+// =================================================================================
+{
+  const tu = DATA.toeplitz_universal.checks.find((c) => c.m === 8);
+  const s = content("C. Entropy and extraction", "C · Extraction", "Why Toeplitz hashing works: 2-universality",
+    "A hash family is 2-universal if, for any two different inputs, a randomly chosen member maps them to the same output with probability at most 2 to the minus m. For a linear hash this is a statement about one vector: T x equals T x-prime exactly when T times d is zero, where d is x XOR x-prime, which is non-zero. Proof for Toeplitz matrices: let j0 be the first position where d has a 1. Row i of T d is a XOR of seed bits, and the one with the largest index is s[i - j0 + n - 1]. Earlier rows only use seed bits with smaller indices, so going down the rows, every row brings in a seed bit that nothing above it has seen. Each row of T d is therefore a fresh fair coin, the m rows are independent, and the probability that all of them are zero is exactly 2 to the minus m. On the right we checked it numerically: 400,000 random seeds and pairs per output size, and the measured collision rate sits on 2 to the minus m.");
+  card(s, { x: MX, y: 1.5, w: 5.1, h: 1.3, head: "2-UNIVERSAL HASH FAMILY", big: "Pr[T·x = T·x′] ≤ 2⁻ᵐ", bigSize: 18, body: "for every pair x ≠ x′" });
+  card(s, { x: MX, y: 2.95, w: 5.1, h: 1.3, head: "LINEARITY", big: "T·x = T·x′  ⇔  T·d = 0", bigSize: 18, body: "with d = x ⊕ x′ ≠ 0" });
+  card(s, { x: MX, y: 4.4, w: 5.1, h: 2.15, head: "PROOF IN ONE LINE",
+    body: "j₀ = first 1 of d. Row i of T·d contains the seed bit\n**s[i − j₀ + n − 1]**, which no earlier row uses.\nEvery row is a **fresh fair coin**, so\nPr[T·d = 0] = 2⁻ᵐ exactly.", bodySize: 13 });
+  img(s, "fig26_toeplitz_universal.png", { x: 6.0, y: 1.45, w: 6.73, h: 3.45 }, { alt: "Fresh seed bit per row, and measured collision probability" });
+  card(s, { x: 6.0, y: 5.05, w: 6.73, h: 1.5, head: "CHECKED NUMERICALLY (m = 8, n = 16)",
+    big: `${tu.measured.toFixed(4)}  vs  2⁻⁸ = ${tu.theory.toFixed(4)}`, bigSize: 18, fill: PASS_BG, color: TEAL });
+}
+
+// =================================================================================
+// 132. Deriving the Leftover Hash Lemma
+// =================================================================================
+{
+  const l = DATA.lhl;
+  const s = content("C. Entropy and extraction", "C · Extraction", "Deriving the Leftover Hash Lemma",
+    "Here is why m = k - 2 log2(1/epsilon) is the right number. The tool is collision probability: the chance that two independent draws are equal, which is the sum of the squared probabilities. If X has min-entropy k, every probability is at most 2 to the -k, so CP(X) is at most 2 to the -k. Now hash with a random member T of a 2-universal family and look at the pair (T, T X). Two independent copies collide only if they picked the same T - probability one over the family size - and then either X equals X-prime, at most 2 to the -k, or the hash collides anyway, at most 2 to the -m. A distribution whose collision probability is close to that of the uniform distribution must itself be close to uniform: the statistical distance is at most one half times the square root of N times CP minus 1. Putting the pieces together, the distance is at most one half times 2 to the (m - k)/2. Requiring that to be at most epsilon gives m = k - 2 log2(1/epsilon). The chart shows the trade-off for our block: every extra output bit costs half a bit of security. With k = 15,740 we keep 15,536 bits and get epsilon about 2 to the -102. Because the bound holds for the pair (T, T X), the seed can be public.");
+  bullets(s, [
+    { h: "1 · Collision probability" },
+    "CP(Z) = Σ P(z)²;  min-entropy k  ⇒  **CP(X) ≤ 2⁻ᵏ**",
+    { h: "2 · Hash with a random 2-universal T" },
+    "**CP(T, T·X) ≤ (2⁻ᵏ + 2⁻ᵐ) / |𝒯|**",
+    { h: "3 · Small CP means nearly uniform" },
+    "distance to uniform ≤ ½·√(N·CP − 1), N = |𝒯|·2ᵐ",
+    { h: "4 · Put together" },
+    "**Δ ≤ ½·√(2ᵐ⁻ᵏ) ≤ ε  ⇔  m = k − 2·log₂(1/ε)**",
+  ], { x: MX, y: 1.5, w: 5.6, h: 5.05 }, { fontSize: 15, space: 9 });
+  img(s, "fig27_lhl_tradeoff.png", { x: 6.45, y: 1.45, w: 6.28, h: 3.45 }, { alt: "Security versus bits kept for one 16,384-bit block" });
+  card(s, { x: 6.45, y: 5.05, w: 6.28, h: 1.5, head: "OUR BLOCK",
+    big: `k = ${Math.round(l.entropy_in).toLocaleString("en-US")}  →  m = ${l.m.toLocaleString("en-US")}`, bigSize: 18,
+    body: "ε ≈ 2⁻¹⁰², and it holds **even if the seed is public**" });
+}
+
+// =================================================================================
 // 14. Leftover Hash Lemma
 // =================================================================================
 {
@@ -589,13 +584,11 @@ pres.addSection({ title: "D. Statistical test suites" });
   const s = content("D. Statistical test suites", "D · Testing", "A statistical test can reject randomness, never prove it",
     "Every randomness test is a hypothesis test. The null hypothesis is that the bits are independent and fair. The test computes a statistic and its p-value: the probability of seeing a result at least this extreme if the null hypothesis is true. We reject at alpha = 0.01. Two consequences matter. First, under the null hypothesis p-values are uniformly distributed, so a perfect source still fails one test in a hundred - which is why we look at many sequences, not one. Second, a pass only means this test found no pattern. A good PRNG passes everything; passing never proves that bits are quantum or unpredictable. The histograms: 100 sequences of a million bits each; the control and extracted bits give flat p-values, the noisy bits pile up at zero.");
   bullets(s, [
-    "**H₀**: bits are independent and fair",
-    "**p-value** = P(result at least this extreme | H₀)",
-    "Reject H₀ when **p < α = 0.01**",
-    "Under H₀ p-values are **uniform**: a perfect source fails **1 test in 100** (type I error)",
-    "A pass means only **no evidence against H₀** (type II error is always possible)",
-    "A good **PRNG passes** every test: tests cannot certify quantum origin",
-  ], { x: MX, y: 1.5, w: 4.75, h: 5.0 }, { fontSize: 13.5, space: 10 });
+    "**H₀**: the bits are independent and fair; reject when **p < 0.01**",
+    "Under H₀ p-values are **uniform**: even perfect bits fail **1 % of tests**",
+    "So we judge **many sequences**, not one",
+    "A good PRNG passes too: tests **cannot certify** quantum origin",
+  ], { x: MX, y: 1.6, w: 4.75, h: 4.9 }, { fontSize: 15, space: 16 });
   img(s, "fig19_pvalue_hist.png", { x: 5.6, y: 1.5, w: 7.13, h: 3.95 }, { alt: "p-value histograms for monobit and runs tests" });
   const pv = DATA.pvalues_frequency_runs;
   const tag = (d, t) => `${pv[d][t].passed}/100`;
@@ -637,51 +630,6 @@ pres.addSection({ title: "D. Statistical test suites" });
 }
 
 // =================================================================================
-// 19. Two tests by hand
-// =================================================================================
-{
-  const mb = DATA.monobit_example, rn = DATA.runs_example;
-  const s = content("D. Statistical test suites", "D · NIST SP 800-22", "Two NIST tests worked by hand",
-    "Monobit: convert each bit to plus or minus one and add them up. For 1011010101 the sum is 2. Divide by the square root of n to get 0.632, and the p-value is the complementary error function of that over root 2: 0.527, a pass. Runs: first check the share of ones is close enough to one half - otherwise the runs test is not applied. 1001101011 has seven runs: 1, 00, 11, 0, 1, 0, 11. The expected number is 2 n pi (1 - pi) = 4.8, and the p-value is 0.147, a pass. These are exactly the formulas the official code applies to each million-bit sequence.");
-  const drawBits = (bits, x, y, runs) => {
-    const sz = 0.48, g = 0.06;
-    [...bits].forEach((b, i) => {
-      s.addText(b, { shape: pres.shapes.RECTANGLE, x: x + i * (sz + g), y, w: sz, h: sz,
-        fill: { color: b === "1" ? PURPLE : LAV }, line: { color: b === "1" ? PURPLE : LAV, width: 0 },
-        fontFace: FONT, fontSize: 14, bold: true, color: b === "1" ? "FFFFFF" : DEEP, align: "center", valign: "middle", margin: 0 });
-    });
-    if (runs) {
-      let start = 0;
-      runs.forEach((len, k) => {
-        const x1 = x + start * (sz + g), w = len * (sz + g) - g;
-        s.addShape(pres.shapes.RECTANGLE, { x: x1, y: y + sz + 0.07, w, h: 0.07, fill: { color: k % 2 ? MID : DEEP }, line: { width: 0, color: k % 2 ? MID : DEEP } });
-        start += len;
-      });
-    }
-  };
-  const colW = 5.9;
-  [[MX, "MONOBIT (FREQUENCY)"], [MX + colW + 0.33, "RUNS"]].forEach(([x, h_]) => {
-    s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y: 1.5, w: colW, h: 5.05, rectRadius: 0.08, fill: { color: LAV2 }, line: { color: LAV2, width: 0 } });
-    s.addText(h_, { x: x + 0.25, y: 1.62, w: colW - 0.5, h: 0.3, fontFace: FONT, fontSize: 11, bold: true, color: PURPLE, margin: 0, isTextBox: true });
-  });
-  drawBits(mb.bits, MX + 0.25, 2.05);
-  bullets(s, [
-    `Map bits to ±1 and sum: **Sₙ = +1−1+1+1−1+1−1+1−1+1 = ${mb.S}**`,
-    `**s_obs = |Sₙ| / √n = ${mb.s_obs.toFixed(3)}**`,
-    `**p = erfc(s_obs / √2) = ${mb.p.toFixed(3)}** ≥ 0.01 → pass`,
-    "Large |Sₙ| means too many 1s or 0s; our noisy source has **Sₙ ≈ −26,000** per 10⁶ bits",
-  ], { x: MX + 0.25, y: 2.95, w: colW - 0.5, h: 3.5 }, { fontSize: 14, space: 12 });
-  drawBits(rn.bits, MX + colW + 0.58, 2.05, [1, 2, 2, 1, 1, 1, 2]);
-  bullets(s, [
-    `Pre-test: **π = ${rn.pi}**, |π − ½| < 2/√n ✓`,
-    `Runs (bars above): 1 · 00 · 11 · 0 · 1 · 0 · 11 → **V = ${rn.V}**`,
-    `Expected **2nπ(1−π) = ${(2 * rn.n * rn.pi * (1 - rn.pi)).toFixed(1)}**`,
-    `**p = erfc(|V − 2nπ(1−π)| / (2√(2n)·π(1−π))) = ${rn.p.toFixed(3)}** → pass`,
-    "Too few runs = bits stick together; too many = bits oscillate",
-  ], { x: MX + colW + 0.58, y: 2.95, w: colW - 0.5, h: 3.5 }, { fontSize: 14, space: 12 });
-}
-
-// =================================================================================
 // 20. Running NIST properly
 // =================================================================================
 {
@@ -699,11 +647,11 @@ pres.addSection({ title: "D. Statistical test suites" });
     "#   for all 188 sub-tests",
   ].join("\n"), { x: 8.75, y: 1.5, w: 3.98, h: 2.7 }, 9.5);
   card(s, { x: MX, y: 4.4, w: 3.9, h: 2.15, head: "PROPORTION", big: "≥ 96 / 100",
-    body: "pass rate ≥ 0.99 − 3·√(0.99·0.01/m), m = number of sequences" });
+    body: "sequences must pass each sub-test", bodySize: 12.5 });
   card(s, { x: MX + 4.1, y: 4.4, w: 3.9, h: 2.15, head: "UNIFORMITY", big: "P ≥ 10⁻⁴",
-    body: "χ² of the p-values over 10 bins; only applied with **≥ 55** sequences" });
+    body: "the p-values must be spread evenly", bodySize: 12.5 });
   card(s, { x: MX + 8.2, y: 4.4, w: 3.93, h: 2.15, head: "148 TEMPLATES", big: "≤ 3 failures",
-    body: "expected by chance (binomial, 99 % level), so 147/148 is **within chance**" });
+    body: "are expected by chance, so 147/148 is fine", bodySize: 12.5 });
 }
 
 // =================================================================================
@@ -718,8 +666,8 @@ pres.addSection({ title: "D. Statistical test suites" });
   card(s, { x: 8.7, y: 1.45, w: 4.03, h: 1.25, head: "CONTROL AND SIMULATOR", big: `${g("urandom").passed}/${g("urandom").total} · ${g("aer_D_5k").passed}/${g("aer_D_5k").total}`, bigSize: 20 });
   card(s, { x: 8.7, y: 2.85, w: 4.03, h: 1.25, head: "NOISY SOURCE", big: `${g("aer_D_ibmlike").passed}/${g("aer_D_ibmlike").total} sub-tests`, bigSize: 20, fill: "FDF2EC", color: ORANGE });
   card(s, { x: 8.7, y: 4.25, w: 4.03, h: 1.25, head: "AFTER TOEPLITZ", big: `${g("aer_D_ibmlike_toeplitz").passed}/${g("aer_D_ibmlike_toeplitz").total}`, bigSize: 20, fill: PASS_BG, color: TEAL });
-  para(s, "NIST's linear-complexity test **passes** the 100k-shot simulator: 500-bit blocks are too short to see the 19,937-bit formula.",
-    { x: 8.7, y: 5.75, w: 4.03, h: 0.85 }, { fontSize: 11 });
+  para(s, "NIST's own linear-complexity test **misses** the simulator's formula.",
+    { x: 8.7, y: 5.75, w: 4.03, h: 0.8 }, { fontSize: 13 });
 }
 
 // =================================================================================
@@ -750,10 +698,9 @@ pres.addSection({ title: "D. Statistical test suites" });
   ].join("\n"), { x: MX, y: 3.95, w: 5.9, h: 2.45 }, 10.5);
   img(s, "fig23_random_walk.png", { x: 6.75, y: 1.5, w: 5.98, h: 3.55 }, { alt: "Random walks of control, noisy and extracted bits" });
   bullets(s, [
-    "Rabbit and Alphabit were **designed for finite files** from physical generators",
-    "Our harness sizes nb so the file is **never exhausted**, and never wraps around",
-    "Random walk (RandomWalk1, like NIST's cumulative sums): **bias = steady drift**",
-  ], { x: 6.75, y: 5.15, w: 5.98, h: 1.4 }, { fontSize: 12 });
+    "Rabbit and Alphabit are built for **finite files**",
+    "Bias shows up as a **steady drift** of the random walk",
+  ], { x: 6.75, y: 5.25, w: 5.98, h: 1.3 }, { fontSize: 13.5, space: 8 });
 }
 
 // =================================================================================
@@ -774,15 +721,14 @@ pres.addSection({ title: "D. Statistical test suites" });
   });
   s.addTable(rows, { x: MX, y: 1.5, w: 7.6, colW: [2.8, 1.2, 1.2, 1.2, 1.2], border: TB, rowH: 0.42 });
   caption(s, "TestU01 LinearComp, n = 400,020 bits per sequence, bit positions 0 and 29 (BigCrush parameters).", { x: MX, y: 4.55, w: 7.6, h: 0.35 });
-  card(s, { x: MX, y: 5.0, w: 3.7, h: 1.55, head: "WHY 5K SHOTS PASSES", body: "Aer re-seeds per circuit: each 5,000-shot segment is too short for a 19,937-bit recurrence to show." });
-  card(s, { x: MX + 3.9, y: 5.0, w: 3.7, h: 1.55, head: "WHY NOISY DATA PASSES", body: "Noise is drawn by comparing random doubles with a threshold: **non-linear**, so L keeps growing." });
+  card(s, { x: MX, y: 5.0, w: 3.7, h: 1.55, head: "WHY 5K SHOTS PASSES", body: "Re-seeded every 5,000 shots: too short to show", bodySize: 12.5 });
+  card(s, { x: MX + 3.9, y: 5.0, w: 3.7, h: 1.55, head: "WHY NOISY DATA PASSES", body: "The noise adds **non-linear** steps", bodySize: 12.5 });
   img(s, "fig08_lfsr_example.png", { x: 8.55, y: 1.5, w: 4.18, h: 1.75 }, { alt: "LFSR linear complexity example" });
   bullets(s, [
-    "Berlekamp–Massey over **400,020 bits** per sequence",
-    "Statistics: **number** and **size** of the jumps in L(n)",
-    "MT19937 is linear over GF(2): L stops at 19,937 → **jump count p = 1.000**",
-    "Both passing simulator datasets are **still fully predictable** from their seed",
-  ], { x: 8.55, y: 3.45, w: 4.18, h: 3.1 }, { fontSize: 12 });
+    "Berlekamp–Massey on **400,020-bit** sequences",
+    "MT19937 is linear: L stops at 19,937 → **p = 1.000**",
+    "The passing runs are **still predictable** from the seed",
+  ], { x: 8.55, y: 3.55, w: 4.18, h: 3.0 }, { fontSize: 13.5, space: 10 });
 }
 
 // =================================================================================
@@ -806,17 +752,12 @@ pres.addSection({ title: "D. Statistical test suites" });
   const s = content("D. Statistical test suites", "D · Dieharder", "Dieharder: Marsaglia's classic tests, extended",
     "Dieharder, by Robert G. Brown, extends George Marsaglia's 1995 Diehard battery. Many of its tests are small simulations whose answer is known for true randomness. The parking-lot test is the easiest to picture: try to park cars at random positions in a square lot; a car that would touch an already-parked car crashes. For random coordinates the number of successfully parked cars is known - about 3,523 out of 12,000 attempts in Diehard's 100 by 100 lot. Others: birthday spacings, overlapping permutations, matrix ranks, minimum distance between random points, 3D spheres, squeeze, and craps. One practical trap: when Dieharder reads from a file and runs out of data it silently rewinds and reuses it, which causes failures for the wrong reason. To give a sense of scale: a full -a run on a 1-gigabyte control file had already re-read the file 89 times before we stopped it. So we ran each test on its own, with as many p-samples as the 100-million-bit file supports without rewinding, calibrated on the control: 19 tests and 49 results per dataset; eight tests need more data and were left out. Results: the control and the simulator datasets pass, with a few WEAK results as expected by chance; the noisy source fails 22 results in the bias-sensitive tests; after Toeplitz extraction it passes.");
   img(s, "fig25_parking_lot.png", { x: MX, y: 1.5, w: 3.9, h: 4.35 }, { align: "left", alt: "Parking lot test illustration" });
-  caption(s, "Parking lot with real control bits: parked cars (purple) and crashes (orange). Diehard: 100×100 lot, 12,000 attempts, ≈ 3,523 parked.", { x: MX, y: 5.95, w: 3.9, h: 0.6 });
+  caption(s, "Parking lot with real control bits: purple = parked, orange = crashed.", { x: MX, y: 5.95, w: 3.9, h: 0.6 });
   bullets(s, [
-    { h: "What it tests" },
-    "**Birthday spacings**, overlapping permutations, matrix ranks",
-    "**Parking lot**, minimum distance, 3D spheres, squeeze, craps",
-    "Bit-level count and pattern tests (sts_*, rgb_*)",
-    { h: "How we ran it" },
-    "File input **rewinds** silently when data runs out → false failures",
-    "Each test **sized to the file**: the most p-samples that never rewind",
-    `**${DH ? DH.tests_run : "–"} tests**, no data re-used; ${DH ? DH.tests_skipped.length : "–"} need more than 10⁸ bits`,
-  ], { x: 4.75, y: 1.5, w: 3.6, h: 5.05 }, { fontSize: 12 });
+    "Small simulations with a **known answer**: birthday spacings, parking lot, 3D spheres, craps…",
+    "File input **re-reads** the data when it runs out → false failures",
+    "We size each test so it **never re-reads**: 19 tests per dataset",
+  ], { x: 4.75, y: 1.5, w: 3.6, h: 5.05 }, { fontSize: 13, space: 12 });
   if (DH && DH.datasets) {
     const short = (d) => (NAMES[d] || d).replace("Simulator, ", "Sim, ").replace("Same noisy bits after Toeplitz", "After Toeplitz")
       .replace("Control (OS random)", "Control").replace("uneven read-out noise", "read-out noise").replace("2% symmetric noise", "2% sym. noise");
@@ -950,34 +891,6 @@ pres.addSection({ title: "E. Engineering and conclusions" });
 }
 
 // =================================================================================
-// 29. Limitations and next steps
-// =================================================================================
-{
-  const s = content("E. Engineering and conclusions", "E · Outlook", "Limitations, and what comes next",
-    "Honest limitations first. The source is a simulator, so the results validate the testing pipeline rather than any physical device. The noise model covers read-out error only - no crosstalk, drift or gate errors. We implemented three of the SP 800-90B estimators, not the whole tool, and file sizes limit how much of TestU01 and Dieharder we can run. Next steps follow naturally: run variant A on IBM Quantum hardware, keeping shot order, and push those bits through exactly this pipeline; run NIST's full 800-90B tool; generate gigabyte-scale files for BigCrush; and, longer term, look at device-independent QRNGs, where a Bell-inequality violation certifies the randomness itself.");
-  bullets(s, [
-    { h: "Limitations" },
-    "**Simulated source**: validates the pipeline, not a physical device",
-    "Noise model covers **read-out error only** (no crosstalk, drift or gate error)",
-    "**Three** SP 800-90B estimators, not the full tool",
-    "10⁸-bit files limit TestU01 (no Crush/BigCrush) and Dieharder (rewinding)",
-  ], { x: MX, y: 1.5, w: 5.4, h: 4.9 }, { fontSize: 14.5, space: 14 });
-  const st = [
-    ["STAGE 1 · DONE", "Simulator", "Pipeline built and validated; harness passes a control, catches bias and a hidden PRNG.", PURPLE, "FFFFFF"],
-    ["STAGE 2 · NEXT", "Real hardware", "Variant A on IBM Quantum, shot order kept (SamplerV2 bitstrings), same pipeline.", LAV, DEEP],
-    ["STAGE 3 · LATER", "Certified randomness", "Full SP 800-90B, BigCrush on GB files, device-independent QRNG via Bell tests.", LAV2, DEEP],
-  ];
-  st.forEach(([h_, t, b, fill, col], i) => {
-    const y = 1.55 + i * 1.65;
-    s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: 6.45, y, w: 6.28, h: 1.45, rectRadius: 0.08, fill: { color: fill }, line: { color: fill === LAV2 ? LINE : fill, width: 1 } });
-    s.addText(h_, { x: 6.65, y: y + 0.12, w: 5.9, h: 0.28, fontFace: FONT, fontSize: 10, bold: true, color: col === "FFFFFF" ? LAV : PURPLE, margin: 0, isTextBox: true });
-    s.addText(t, { x: 6.65, y: y + 0.4, w: 5.9, h: 0.38, fontFace: FONT, fontSize: 16, bold: true, color: col === "FFFFFF" ? "FFFFFF" : INK, margin: 0, isTextBox: true });
-    s.addText(b, { x: 6.65, y: y + 0.8, w: 5.9, h: 0.6, fontFace: FONT, fontSize: 11.5, color: col === "FFFFFF" ? "FFFFFF" : INK, margin: 0, isTextBox: true });
-    if (i < 2) arrow(s, 9.59, y + 1.47, 9.59, y + 1.63, PURPLE);
-  });
-}
-
-// =================================================================================
 // 30. Conclusion and references
 // =================================================================================
 {
@@ -991,7 +904,9 @@ pres.addSection({ title: "E. Engineering and conclusions" });
     para(s, t, { x: MX + 2.6, y: y + 0.05, w: 3.9, h: 0.75 }, { fontSize: 12.5, valign: "middle" });
   });
   para(s, "Passing statistical tests is **necessary, not sufficient**: the source and the extraction matter as much as the tests.",
-    { x: MX, y: 6.15, w: 6.4, h: 0.6 }, { fontSize: 12 });
+    { x: MX, y: 5.95, w: 6.4, h: 0.6 }, { fontSize: 12 });
+  s.addText("Thank you  ·  Aradhya Mahajan (B23CS1088)  ·  Amee Ghai (B23PH1003)", { x: MX, y: 6.62, w: 12.1, h: 0.32, fontFace: FONT, fontSize: 11, bold: true,
+    color: PURPLE, margin: 0, isTextBox: true });
   s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: 7.35, y: 1.5, w: 5.38, h: 5.05, rectRadius: 0.08, fill: { color: LAV2 }, line: { color: LAV2, width: 0 } });
   s.addText("REFERENCES", { x: 7.55, y: 1.62, w: 5, h: 0.3, fontFace: FONT, fontSize: 10, bold: true, color: PURPLE, margin: 0, isTextBox: true });
   const refs = [
