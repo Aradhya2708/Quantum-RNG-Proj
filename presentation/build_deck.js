@@ -17,6 +17,21 @@ const RESULTS = JSON.parse(fs.readFileSync(path.join(ROOT, "results/full/summary
 const DH_PATH = path.join(ROOT, "results/dieharder/summary.json");
 const DH = fs.existsSync(DH_PATH) ? JSON.parse(fs.readFileSync(DH_PATH, "utf8")) : null;
 
+// Speaker notes come from presentation/SPEAKER_SCRIPT.md ("## Slide N — title · time" sections).
+function loadScript(file) {
+  const out = {};
+  if (!fs.existsSync(file)) return out;
+  const text = fs.readFileSync(file, "utf8");
+  const re = /^## Slide (\d+)[^\n]*\n([\s\S]*?)(?=^---\s*$|^## |(?![\s\S]))/gm;
+  let m;
+  while ((m = re.exec(text))) {
+    out[+m[1]] = m[2].trim().replace(/\*\*/g, "").replace(/`/g, "")
+      .split(/\n\s*\n/).map((para) => para.replace(/\s*\n\s*/g, " ")).join("\n\n");
+  }
+  return out;
+}
+const SCRIPT = loadScript(path.join(__dirname, "SPEAKER_SCRIPT.md"));
+
 // ---- theme --------------------------------------------------------------------
 const THEME = {
   name: "QRNG Purple",
@@ -92,7 +107,8 @@ function content(section, chip, title, notes) {
   });
   motif(s, slideNo);
   s.addText(title, { placeholder: "title" });
-  if (notes) s.addNotes(notes);
+  const n_ = SCRIPT[slideNo] || notes;
+  if (n_) s.addNotes(n_);
   return s;
 }
 
@@ -249,7 +265,7 @@ pres.addSection({ title: "A. Problem and test source" });
     color: INK, margin: 0, isTextBox: true });
   s.addText("IIT Jodhpur  ·  November 2026", { x: MX, y: 6.4, w: 6, h: 0.35, fontFace: FONT, fontSize: 11,
     color: GRAY, margin: 0, isTextBox: true });
-  s.addNotes("Welcome. This lecture is about one question: how do you know that a random number generator, and in particular a quantum one, is actually producing good random bits? We will build a complete testing pipeline: generate bits from a quantum circuit, estimate how much real randomness they contain, clean them with a Toeplitz extractor, and run them through five standard test suites. Every chart in this talk comes from our own code and data.");
+  s.addNotes(SCRIPT[1] || "Welcome.");
 }
 
 // =================================================================================
@@ -553,7 +569,7 @@ pres.addSection({ title: "C. Entropy and extraction" });
   bullets(s, [
     "Toeplitz product = **convolution** → O(n log n) per block instead of O(n·m)",
     "Unit test: identical to the explicit matrix product",
-    "**~20 M bits/s** in NumPy; extraction is not the bottleneck",
+    "**~5 M bits/s** in NumPy: faster than the simulator, never the bottleneck",
   ], { x: MX, y: 3.55, w: 5.6, h: 1.8 }, { fontSize: 12.5 });
   card(s, { x: MX, y: 5.3, w: 2.7, h: 0.98, head: "BEFORE", big: "48.69 % ones", bigSize: 16, fill: "FDF2EC", color: ORANGE });
   card(s, { x: MX + 2.9, y: 5.3, w: 2.7, h: 0.98, head: "AFTER", big: "50.002 % ones", bigSize: 16, fill: PASS_BG, color: TEAL });
@@ -785,7 +801,7 @@ pres.addSection({ title: "D. Statistical test suites" });
 pres.addSection({ title: "E. Engineering and conclusions" });
 {
   const s = content("E. Engineering and conclusions", "E · Engineering", "The pipeline as software: one command, fully reproducible",
-    "Everything in this talk is produced by one Python package. generate and noise produce the bits; entropy, lincomp and extractor analyse and clean them; three drivers run the external suites - the official NIST C code, our TestU01 harness and Dieharder; pipeline ties it together and writes a summary table plus every p-value as JSON; figures draws every chart in this deck from those results. A full run of six datasets at 10 to the 8 bits takes about 12 minutes on 22 cores. Seeds are recorded, output does not depend on the number of workers, 19 unit tests check the maths, and a GitHub Actions workflow re-runs everything on Linux.");
+    "Everything in this talk is produced by one Python package. generate and noise produce the bits; entropy, lincomp and extractor analyse and clean them; three drivers run the external suites - the official NIST C code, our TestU01 harness and Dieharder; pipeline ties it together and writes a summary table plus every p-value as JSON; figures draws every chart in this deck from those results. A full run of six datasets at 10 to the 8 bits takes about 12 minutes on 22 cores. Seeds are recorded, output does not depend on the number of workers, 20 unit tests check the maths, and a GitHub Actions workflow re-runs everything on Linux.");
   const BH = 0.8;
   const box = (x, y, w, t, sub, strong) => {
     s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y, w, h: BH, rectRadius: 0.08, fill: { color: strong ? PURPLE : LAV2 }, line: { color: strong ? PURPLE : LINE, width: 1 } });
@@ -811,7 +827,7 @@ pres.addSection({ title: "E. Engineering and conclusions" });
   code(s, "python -m hqrng.pipeline --profile full --out results/full\npython -m hqrng.figures   # every chart in this deck", { x: MX, y: 4.45, w: 6.3, h: 0.85 }, 11);
   bullets(s, [
     "Seeds recorded; output **identical for any worker count**",
-    "**19 unit tests**: Toeplitz vs explicit matrix, estimators, NIST rules, file formats",
+    "**20 unit tests**: Toeplitz vs explicit matrix, estimators, NIST rules, file formats",
     "GitHub Actions workflow re-runs every suite on Linux",
   ], { x: MX, y: 5.45, w: 6.3, h: 1.15 }, { fontSize: 12 });
   card(s, { x: 7.2, y: 4.45, w: 2.65, h: 2.1, head: "FULL RUN", big: "≈ 12 min", body: "6 datasets × 10⁸ bits, 22 cores" });
